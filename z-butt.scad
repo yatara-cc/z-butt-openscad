@@ -72,16 +72,23 @@ module rotate_z_copy (angle) {
 }
 
 
-module 2u_stabs_copy (xu) {
-     if (xu >= 2) {
-          translate([unit_u / 2, 0, 0]) {
-               children();
-          }
-          translate([-unit_u / 2, 0, 0]) {
+function stabs_xu (xu) = 
+     (xu == 7) ? [.5, 3.5, 6.5] :
+     (xu == 6.25) ? [.5, 3.75, 5.75] :
+     (xu == 6) ? [.5, 3.5, 5.5] :
+     (xu == 4) ? [xu / 2 - 1.5, xu / 2, xu / 2 + 1.5] :
+     (xu == 3) ? [xu / 2 - 1, xu / 2, xu / 2 + 1] :
+     (xu >= 2) ? [xu / 2 - .5, xu / 2, xu / 2 + .5] :
+     [xu / 2];
+
+
+module stabs_copy (xu) {
+     cx = -xu / 2;
+     for (x = stabs_xu(xu)) {
+          translate([unit_u * (cx + x), 0, 0]) {
                children();
           }
      }
-     children();
 }
 
 
@@ -292,7 +299,7 @@ module mx_base (xu=1) {
           }
           sprues_base(regst_height + overlap, xu, $fn=48);
           translate([0, 0, -regst_height]) {
-               2u_stabs_copy(xu) {
+               stabs_copy(xu) {
                     mx_cross(mx_height_base + regst_height + overlap, offset=-mx_offset);
                }
           }
@@ -311,17 +318,17 @@ module mx_stem_cavity (xu=1) {
                     base(xu);
                     difference() {
                          key_cavity(xu);
-                         2u_stabs_copy(xu) {
+                         stabs_copy(xu) {
                               mx_cavity();
                          }
                     }
                }
-               2u_stabs_copy(xu) {
+               stabs_copy(xu) {
                     mx_cross(key_cavity_height);
                }
           }
           sprues_base(sprue_height, xu, $fn=48);
-          2u_stabs_copy(xu) {
+          stabs_copy(xu) {
                sprues_stem(sprue_height, $fn=48);
           }
      }

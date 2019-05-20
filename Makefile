@@ -1,9 +1,9 @@
 SHELL := /bin/bash
 
 
-SIZES := 1 1.25 1.5 1.75 2
-STL_MX_BASE := $(foreach xu,$(SIZES),z-butt-$(xu)u-mx-base.stl)
-STL_MX_STEM_CAVITY := $(foreach xu,$(SIZES),z-butt-$(xu)u-mx-stem-cavity.stl)
+SIZES := 1 1.25 1.5 1.75 2 2.25 2.75 3 4 6 6.25 7
+STL_MX_BASE := $(foreach xu,$(SIZES),stl/z-butt-$(xu)u-mx-base.stl)
+STL_MX_STEM_CAVITY := $(foreach xu,$(SIZES),stl/z-butt-$(xu)u-mx-stem-cavity.stl)
 
 
 all : \
@@ -12,12 +12,12 @@ all : \
 	img/z-butt-family-photo.png
 
 clean :
-	rm -f \
-	  z-butt-*u-mx-base.* \
-	  z-butt-*u-mx-stem-cavity.* \
+	rm -rf \
+	  stl \
 	  img/z-butt-family-photo.png
 
-%.stl : %.scad z-butt.scad
+stl/%.stl : %.scad z-butt.scad
+	mkdir -p stl
 	openscad -o /tmp/$*.stl $<
 	mv /tmp/$*.stl $@
 
