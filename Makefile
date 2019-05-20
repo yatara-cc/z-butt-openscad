@@ -8,6 +8,7 @@ SIZES := 1 2
 STL_MX_MASTER_BASE := $(foreach xu,$(SIZES),stl/z-butt-$(xu)u-mx-master-base.stl)
 STL_MX_SCULPT_BASE := $(foreach xu,$(SIZES),stl/z-butt-$(xu)u-mx-sculpt-base.stl)
 STL_MX_STEM_CAVITY := $(foreach xu,$(SIZES),stl/z-butt-$(xu)u-mx-stem-cavity.stl)
+STL_CONTAINER := $(foreach xu,$(SIZES),stl/z-butt-$(xu)u-container.stl)
 
 
 all : \
@@ -15,7 +16,8 @@ all : \
 	img/z-butt-family-photo.png \
 	$(STL_MX_MASTER_BASE) \
 	$(STL_MX_SCULPT_BASE) \
-	$(STL_MX_STEM_CAVITY)
+	$(STL_MX_STEM_CAVITY) \
+	$(STL_CONTAINER)
 
 clean :
 	rm -rf \
@@ -44,4 +46,8 @@ z-butt-%u-mx-sculpt-base.scad :
 
 z-butt-%u-mx-stem-cavity.scad :
 	echo -e "include <z-butt.scad>\n\n\nrotate([180, 0, 0]){mx_stem_cavity(xu=$*);}\n" > /tmp/$@
+	mv /tmp/$@ $@
+
+z-butt-%u-container.scad :
+	echo -e "include <z-butt.scad>\n\n\nrotate([0, 0, 0]){container(xu=$*);}\n" > /tmp/$@
 	mv /tmp/$@ $@

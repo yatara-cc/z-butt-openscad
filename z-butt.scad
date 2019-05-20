@@ -50,6 +50,11 @@ key_sculpt_height = 4.5;
 key_sculpt_bevel = 0.93;
 key_sculpt_diameter = 5.82;
 
+container_thickness = 2;
+container_overlap = 2;
+container_height = 30;  // Includes bottom wall 
+container_bevel = 1;
+
 
 // Internal Parameters
 
@@ -395,4 +400,71 @@ module mx_stem_cavity (xu=1) {
                }
           }
      }
+}
+
+
+module container (xu=1) {
+     plate_x = calc_plate_size(xu);
+     plate_y = calc_plate_size();
+
+     color("khaki") {
+          difference () {
+               minkowski () {
+                    scale([
+                               plate_x + container_thickness * 2 - container_bevel * 2,
+                               plate_y * 2 + container_thickness * 3 - container_bevel * 2,
+                               container_height
+                               ]) {
+                         translate([-.5, -.5, 0]) {
+                              cube([1, 1, 1]);
+                         }
+                    }               
+                    scale([1, 1, 0]) {
+                         sphere(container_bevel, $fn=16);
+                    }
+               }
+               union() {
+                    rotate_z_copy(180) {
+                         translate([0, plate_y / 2 + container_thickness / 2, container_thickness]) {
+                              scale([plate_x, plate_y, container_height]) {
+                                   translate([-.5, -.5, 0]) {
+                                        cube([1, 1, 1]);
+                                   }
+                              }
+                         }
+                         translate([0, plate_y / 2 + container_thickness / 2, 0]) {
+                              hull() {
+                                   scale([container_thickness, plate_y, container_thickness / 2]) {
+                                        translate([-.5, -.5, 0]) {
+                                             cube([1, 1, 1]);
+                                        }
+                                   }
+                                   scale([container_thickness * 2, plate_y, container_thickness / 2]) {
+                                        translate([-.5, -.5, -1]) {
+                                             cube([1, 1, 1]);
+                                        }
+                                   }
+                              }
+                         }
+                    }
+                    translate([-container_thickness * .5, 0, 0]) {
+                         scale([plate_x, plate_y * 3, container_height * 3]) {
+                              translate([-1, -.5, -.5]) {
+                                   cube([1, 1, 1]);
+                              }
+                         }
+                    }
+                    for (y = [-1, 0, 1]) {
+                         translate([container_thickness * .5, (plate_y + container_thickness) * y, 0]) {
+                              scale([plate_x, plate_y / 2, container_height * 3]) {
+                                   translate([-1, 0, -.5]) {
+                                        cube([1, 1, 1]);
+                                   }
+                              }
+                         }
+                    }
+               }
+          }
+     }
+
 }

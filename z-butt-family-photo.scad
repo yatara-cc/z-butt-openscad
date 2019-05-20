@@ -20,4 +20,11 @@ for (i = [0 : len(sizes) - 1]) {
                mx_stem_cavity(xu);
           }
      }
+
+     translate([-5, cy + container_height / 2, -64]) {
+          rotate([90, 180, 0]) {
+               container(xu);
+          }
+     }
+     
 }
