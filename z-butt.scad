@@ -41,6 +41,11 @@ key_cavity_ch_xy = 2;
 key_cavity_height = 5;
 key_cavity_bevel = 0.25;
 
+key_sculpt_size = 14.925;
+key_sculpt_ch_xy = 1.8;
+key_sculpt_height = 4.5;
+key_sculpt_bevel = 0.93;
+key_sculpt_diameter = 5.82;
 
 
 // Internal Parameters
@@ -59,6 +64,9 @@ function calc_base_size (u=1) = base_size + unit_u * (u - 1);
 
 
 function calc_key_cavity_size (u=1) = key_cavity_size + unit_u * (u - 1);
+
+
+function calc_key_sculpt_size (u=1) = key_sculpt_size + unit_u * (u - 1);
 
 
 // See `https://deskthority.net/wiki/Space_by_keyboard`.
@@ -194,22 +202,37 @@ module indent (xu) {
 }
 
 
+module bevelled_key (sx, sy, sz, ch_xy, bevel) {
+     // `overlap` is added to key base to avoid coplanar intersection.
+     
+     translate([0, 0, -overlap]) {
+          minkowski() {
+               chamfered_cube(sx, sy , sz + overlap, ch_xy, sz);
+               scale([1, 1, 0]) {
+                    sphere(bevel);
+               }
+          }
+     }
+}
+
+
+module key_sculpt (xu) {
+     inset = 2 * key_sculpt_bevel;
+     sx = calc_key_sculpt_size(xu) - inset;
+     sy = calc_key_sculpt_size() - inset;
+
+     bevelled_key(sx, sy, key_sculpt_height, key_sculpt_ch_xy, key_sculpt_bevel, $fn=64);
+}
+
+
 module key_cavity (xu) {
      inset = 2 * key_cavity_bevel;
      sx = calc_key_cavity_size(xu) - inset;
      sy = calc_key_cavity_size() - inset;
 
-     translate([0, 0, -overlap]) {
-          minkowski() {
-               chamfered_cube(sx, sy, key_cavity_height + overlap,
-                              key_cavity_ch_xy,
-                              key_cavity_height);
-               scale([1, 1, 0]) {
-                    sphere(key_cavity_bevel, $fn=32);
-               }
-          }
-     }
+     bevelled_key(sx, sy, key_cavity_height, key_cavity_ch_xy, key_cavity_bevel, $fn=32);
 }
+
 
 module sprue_base (height) {
      r = sprue_diameter_base / 2;
@@ -288,20 +311,44 @@ module mx_cross (height, offset=0) {
 }
 
 
-module mx_base (xu=1) {
-     union () {
-          difference() {
-               bottom_plate(xu);
-               registration_cube(xu, regst_offset);
+module mx_master_base (xu=1) {
+     color("LightSteelBlue") {
+          union () {
+               difference() {
+                    bottom_plate(xu);
+                    registration_cube(xu, regst_offset);
+               }
+               difference() {
+                    base(xu);
+                    indent(xu);
+               }
+               sprues_base(regst_height + overlap, xu, $fn=48);
+               translate([0, 0, -regst_height]) {
+                    stabs_copy(xu) {
+                         mx_cross(mx_height_base + regst_height + overlap, offset=-mx_offset);
+                    }
+               }
           }
+     }
+}
+
+
+module mx_sculpt_base (xu=1) {
+     color("SteelBlue") {
           difference() {
-               base(xu);
-               indent(xu);
-          }
-          sprues_base(regst_height + overlap, xu, $fn=48);
-          translate([0, 0, -regst_height]) {
-               stabs_copy(xu) {
-                    mx_cross(mx_height_base + regst_height + overlap, offset=-mx_offset);
+               union () {
+                    difference() {
+                         bottom_plate(xu);
+                         registration_cube(xu, regst_offset);
+                    }
+                    sprues_base(regst_height + overlap, xu, $fn=48);
+                    base(xu);
+                    key_sculpt(xu);
+               }
+               translate([0, 0, key_sculpt_height - key_cavity_height]) {
+                    stabs_copy(xu) {
+                         cylinder(h=key_cavity_height + overlap, d=key_sculpt_diameter, $fn=48);
+                    }
                }
           }
      }
@@ -309,28 +356,30 @@ module mx_base (xu=1) {
 
 
 module mx_stem_cavity (xu=1) {
-     union () {
-          difference () {
-               union() {
-                    top_plate(xu);
-                    registration_cube(xu);
-               }
-               union () {
-                    base(xu);
-                    difference() {
-                         key_cavity(xu);
-                         stabs_copy(xu) {
-                              mx_cavity();
+     color("CornflowerBlue") {
+          union () {
+               difference() {
+                    union() {
+                         top_plate(xu);
+                         registration_cube(xu);
+                    }
+                    union() {
+                         base(xu);
+                         difference() {
+                              key_cavity(xu);
+                              stabs_copy(xu) {
+                                   mx_cavity();
+                              }
                          }
                     }
+                    stabs_copy(xu) {
+                         mx_cross(key_cavity_height);
+                    }
                }
+               sprues_base(sprue_height, xu, $fn=48);
                stabs_copy(xu) {
-                    mx_cross(key_cavity_height);
+                    sprues_stem(sprue_height, $fn=48);
                }
-          }
-          sprues_base(sprue_height, xu, $fn=48);
-          stabs_copy(xu) {
-               sprues_stem(sprue_height, $fn=48);
           }
      }
 }
