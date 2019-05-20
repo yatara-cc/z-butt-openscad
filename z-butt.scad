@@ -1,3 +1,6 @@
+include <makers-mark.scad>
+
+
 // Constants
 
 unit_u = 19.05;
@@ -107,7 +110,7 @@ module chamfered_cube (sx, sy, sz, ch_xy, ch_z) {
 
      hull() {
           centered_cube([sx, sy, sz - ch_z]);
-          centered_cube([sx - 2 * ch_xy, sy - ch_xy, sz]);
+          centered_cube([sx - 2 * ch_xy, sy - 2 * ch_xy, sz]);
      }
 }
 
@@ -356,8 +359,8 @@ module mx_sculpt_base (xu=1) {
 
 
 module mx_stem_cavity (xu=1) {
-     color("CornflowerBlue") {
-          union () {
+     union () {
+          color("CornflowerBlue") {
                difference() {
                     union() {
                          top_plate(xu);
@@ -379,6 +382,16 @@ module mx_stem_cavity (xu=1) {
                sprues_base(sprue_height, xu, $fn=48);
                stabs_copy(xu) {
                     sprues_stem(sprue_height, $fn=48);
+               }
+          }
+          
+          color("Yellow") {
+               translate([0, key_cavity_size / 2, 0]) {
+                    rotate([-atan(key_cavity_height / key_cavity_ch_xy), 180, 180]) {
+                         translate([0, 2, 0]) {
+                              makers_mark(3);
+                         }
+                    }
                }
           }
      }

@@ -1,7 +1,8 @@
 SHELL := /bin/bash
 
 
-SIZES := 1 1.25 1.5 1.75 2 2.25 2.75 3 4 6 6.25 7
+# SIZES := 1 1.25 1.5 1.75 2 2.25 2.75 3 4 6 6.25 7
+SIZES := 1 2
 
 
 STL_MX_MASTER_BASE := $(foreach xu,$(SIZES),stl/z-butt-$(xu)u-mx-master-base.stl)
