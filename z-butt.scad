@@ -49,7 +49,7 @@ key_cavity_bevel = 0.25;
 overlap = 0.1;  // Offset to avoid coplanar faces in Boolean operations.
 
 
-// Size Functions
+// Functions
 
 
 function calc_plate_size (u=1) = unit_lego_stud * round((plate_size + unit_u * (u - 1)) / unit_lego_stud);
@@ -61,6 +61,17 @@ function calc_base_size (u=1) = base_size + unit_u * (u - 1);
 function calc_key_cavity_size (u=1) = key_cavity_size + unit_u * (u - 1);
 
 
+// See `https://deskthority.net/wiki/Space_by_keyboard`.
+function stabs_xu (xu) = 
+     (xu == 7) ? [.5, 3.5, 6.5] :
+     (xu == 6.25) ? [.5, 3.75, 5.75] :  // (Cherry)
+     (xu == 6) ? [.5, 3.5, 5.5] :  // (Cherry)
+     (xu == 4) ? [xu / 2 - 1.5, xu / 2, xu / 2 + 1.5] :
+     (xu == 3) ? [xu / 2 - 1, xu / 2, xu / 2 + 1] :
+     (xu >= 2) ? [xu / 2 - .5, xu / 2, xu / 2 + .5] :
+     [xu / 2];
+
+
 // Generic Geometry Modules
 
 
@@ -68,26 +79,6 @@ module rotate_z_copy (angle) {
      children();
      rotate([0, 0, angle]) {
           children();
-     }
-}
-
-
-function stabs_xu (xu) = 
-     (xu == 7) ? [.5, 3.5, 6.5] :
-     (xu == 6.25) ? [.5, 3.75, 5.75] :
-     (xu == 6) ? [.5, 3.5, 5.5] :
-     (xu == 4) ? [xu / 2 - 1.5, xu / 2, xu / 2 + 1.5] :
-     (xu == 3) ? [xu / 2 - 1, xu / 2, xu / 2 + 1] :
-     (xu >= 2) ? [xu / 2 - .5, xu / 2, xu / 2 + .5] :
-     [xu / 2];
-
-
-module stabs_copy (xu) {
-     cx = -xu / 2;
-     for (x = stabs_xu(xu)) {
-          translate([unit_u * (cx + x), 0, 0]) {
-               children();
-          }
      }
 }
 
@@ -108,7 +99,7 @@ module chamfered_cube (sx, sy, sz, ch_xy, ch_z) {
 
      hull() {
           centered_cube([sx, sy, sz - ch_z]);
-          centered_cube([sx - ch_xy, sy - ch_xy, sz]);
+          centered_cube([sx - 2 * ch_xy, sy - ch_xy, sz]);
      }
 }
 
@@ -138,6 +129,16 @@ module bevel_corner_cube (sx, sy, sz, r, n) {
 
 
 // Z-Butt Components
+
+
+module stabs_copy (xu) {
+     cx = -xu / 2;
+     for (x = stabs_xu(xu)) {
+          translate([unit_u * (cx + x), 0, 0]) {
+               children();
+          }
+     }
+}
 
 
 module top_plate (xu) {

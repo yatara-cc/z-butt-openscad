@@ -17,7 +17,7 @@ clean :
 	  img/z-butt-family-photo.png
 
 stl/%.stl : %.scad z-butt.scad
-	mkdir -p stl
+	@mkdir -p stl
 	openscad -o /tmp/$*.stl $<
 	mv /tmp/$*.stl $@
 
@@ -28,9 +28,9 @@ img/%.png : %.scad z-butt.scad
 	mv /tmp/$*.png $@
 
 z-butt-%u-mx-base.scad :
-	echo -e "include <z-butt.scad>\n\n\nmx_base(xu=$*);\n" > /tmp/$*.scad
-	mv /tmp/$*.scad $@
+	echo -e "include <z-butt.scad>\n\n\nmx_base(xu=$*);\n" > /tmp/$@
+	mv /tmp/$@ $@
 
 z-butt-%u-mx-stem-cavity.scad :
-	echo -e "include <z-butt.scad>\n\n\nrotate([180, 0, 0]){mx_stem_cavity(xu=$*);}\n" > /tmp/$*.scad
-	mv /tmp/$*.scad $@
+	echo -e "include <z-butt.scad>\n\n\nrotate([180, 0, 0]){mx_stem_cavity(xu=$*);}\n" > /tmp/$@
+	mv /tmp/$@ $@

@@ -15,3 +15,10 @@ To rebuild the STLs on Linux, with OpenSCAD and GNU Make installed, run:
 make
 ```
 
+Or to use, for example, four cores in parrallel:
+
+```
+make -j 4
+```
+
+
