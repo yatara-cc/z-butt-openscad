@@ -657,7 +657,7 @@ module container (xu=1) {
                     }
                     for (y = [-1, 0, 1]) {
                          translate([container_thickness * .5, (plate_y + container_thickness) * y, 0]) {
-                              scale([container_thickness * 3, plate_y / 2, container_height * 3]) {
+                              scale([container_thickness * 3, plate_y / 2 + container_thickness / 2, container_height * 3]) {
                                    translate([-1, 0, -0.5]) {
                                         cube([1, 1, 1]);
                                    }

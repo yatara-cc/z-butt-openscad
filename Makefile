@@ -42,7 +42,8 @@ clean :
 	  img/z-butt-2u-family-photo.png \
 	  img/z-butt-all-family-photo.png \
 	  stl \
-	  scad/z-butt-*.scad
+	  scad/z-butt-*.scad \
+	  z-butt-openscad-stl.zip
 
 
 release : z-butt-openscad-stl.zip
