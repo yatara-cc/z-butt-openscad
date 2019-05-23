@@ -15,9 +15,11 @@ CONVERT_STL_MESHLAB := true
 STL_MX_MASTER_BASE := $(foreach xu,$(SIZES),stl/z-butt-$(xu)u-mx-master-base.stl)
 STL_MX_SCULPT_BASE := $(foreach xu,$(SIZES),stl/z-butt-$(xu)u-mx-sculpt-base.stl)
 STL_MX_STEM_CAVITY := $(foreach xu,$(SIZES),stl/z-butt-$(xu)u-mx-stem-cavity.stl)
+STL_MX_SPRUES_ONLY := $(foreach xu,$(SIZES),stl/z-butt-$(xu)u-mx-sprues-only.stl)
 STL_AL_MASTER_BASE := $(foreach xu,$(SIZES),stl/z-butt-$(xu)u-al-master-base.stl)
 STL_AL_SCULPT_BASE := $(foreach xu,$(SIZES),stl/z-butt-$(xu)u-al-sculpt-base.stl)
 STL_AL_STEM_CAVITY := $(foreach xu,$(SIZES),stl/z-butt-$(xu)u-al-stem-cavity.stl)
+STL_AL_SPRUES_ONLY := $(foreach xu,$(SIZES),stl/z-butt-$(xu)u-al-sprues-only.stl)
 STL_CONTAINER := $(foreach xu,$(SIZES),stl/z-butt-$(xu)u-container.stl)
 
 SIZES_COMMA := $(shell echo "$(SIZES)" | sed 's/ /, /g')
@@ -31,9 +33,11 @@ all : \
 	$(STL_MX_MASTER_BASE) \
 	$(STL_MX_SCULPT_BASE) \
 	$(STL_MX_STEM_CAVITY) \
+	$(STL_MX_SPRUES_ONLY) \
 	$(STL_AL_MASTER_BASE) \
 	$(STL_AL_SCULPT_BASE) \
 	$(STL_AL_STEM_CAVITY) \
+	$(STL_AL_SPRUES_ONLY) \
 	$(STL_CONTAINER)
 
 clean :
@@ -75,6 +79,9 @@ scad/z-butt-%u-mx-sculpt-base.scad :
 scad/z-butt-%u-mx-stem-cavity.scad :
 	echo -e "include <z-butt.scad>\n\n\nrotate([180, 0, 0]){mx_stem_cavity(xu=$*);}\n" > $@
 
+scad/z-butt-%u-mx-sprues-only.scad :
+	echo -e "include <z-butt.scad>\n\nmx_sprues_only(xu=$*);\n" > $@
+
 scad/z-butt-%u-al-master-base.scad :
 	echo -e "include <z-butt.scad>\n\n\nal_master_base(xu=$*);\n" > $@
 
@@ -83,6 +90,9 @@ scad/z-butt-%u-al-sculpt-base.scad :
 
 scad/z-butt-%u-al-stem-cavity.scad :
 	echo -e "include <z-butt.scad>\n\n\nrotate([180, 0, 0]){al_stem_cavity(xu=$*);}\n" > $@
+
+scad/z-butt-%u-al-sprues-only.scad :
+	echo -e "include <z-butt.scad>\n\nal_sprues_only(xu=$*);\n" > $@
 
 scad/z-butt-%u-container.scad :
 	echo -e "include <z-butt.scad>\n\n\nrotate([0, 0, 0]){container(xu=$*);}\n" > $@

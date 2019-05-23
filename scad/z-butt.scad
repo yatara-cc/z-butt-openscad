@@ -602,6 +602,63 @@ module al_stem_cavity (xu=1) {
 }
 
 
+module sprues_only_base (xu=1) {
+     plate_x = calc_plate_size(xu);
+     plate_y = calc_plate_size();
+     base_x = calc_base_size(xu);
+
+     translate([0, 0, -sprue_height]) {
+          linear_extrude(sprue_plate_height) {
+               union() {
+                    difference() {
+                         bevel_corner_square(
+                              plate_x, plate_y,
+                              regst_radius, 25);
+                         bevel_corner_square(
+                              plate_x - sprue_plate_width * 2,
+                              plate_y - sprue_plate_width * 2,
+                              regst_radius - sprue_plate_width, 25);
+                    }
+               }
+               stem_copy(xu) {
+                    circle(d=mx_diameter, $fn=48);
+               }
+               translate([-base_x / 2, 0, 0]) {
+                    sprue_copy(base_x, include_last=true) {
+                         square([sprue_plate_width, plate_y], center=true);
+                    }
+               }
+          }
+     }
+}
+
+
+module mx_sprues_only (xu=1) {
+     color("SkyBlue") {
+          union () {
+               sprues_base(sprue_height, xu, $fn=48);
+               stem_copy(xu) {
+                    mx_sprues_stem(sprue_height, $fn=48);
+               }
+               sprues_only_base(xu=xu);
+          }
+     }
+}
+
+
+module al_sprues_only (xu=1) {
+     color("SkyBlue") {
+          union () {
+               sprues_base(sprue_height, xu, $fn=48);
+               stem_copy(xu) {
+                    al_sprues_stem(sprue_height, $fn=48);
+               }
+               sprues_only_base(xu=xu);
+          }
+     }
+}
+
+
 module container (xu=1) {
      plate_x = calc_plate_size(xu);
      plate_y = calc_plate_size();
@@ -688,6 +745,12 @@ module family_photo (sizes) {
                     mx_sculpt_base(xu);
                }
      
+               translate([-cx, cy, cz]) {
+                    translate([0, 0, + sprue_height]) {
+                         mx_sprues_only(xu);
+                    }
+               }
+               
                translate([-cx, 0, cz]) {
                     rotate([0, 180, 0]) {
                          mx_stem_cavity(xu);
@@ -704,6 +767,12 @@ module family_photo (sizes) {
                     al_sculpt_base(xu);
                }
      
+               translate([-cx, cy, cz]) {
+                    translate([0, 0, + sprue_height]) {
+                         al_sprues_only(xu);
+                    }
+               }
+               
                translate([-cx, 0, cz]) {
                     rotate([0, 180, 0]) {
                          al_stem_cavity(xu);
@@ -717,5 +786,4 @@ module family_photo (sizes) {
                }
           }
      }
-
 }
