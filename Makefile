@@ -71,10 +71,10 @@ img/z-butt-2u-family-photo.png : CROP := -crop 870x570+0+240
 img/z-butt-all-family-photo.png : CROP := -crop 870x720+0+100
 img/%.png : scad/%.scad scad/z-butt.scad
 	openscad \
-	  --imgsize=870,870 \
+	  --imgsize=3480,3480 \
 	  -o /tmp/$*.png $<
 ifneq (, $(shell which convert))
-	convert $(CROP) /tmp/$*.png $@
+	convert -resize 25% $(CROP) /tmp/$*.png $@
 else
 	mv /tmp/$*.png $@
 endif
