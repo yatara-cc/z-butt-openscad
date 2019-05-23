@@ -8,7 +8,7 @@ SIZES := 1 1.25 1.5 1.75 2 2.25 2.75 3 4 6 6.25 7
 # Set to `true` or `false`
 CONVERT_STL_MESHLAB := true
 
-
+.PHONY : stl
 .SECONDARY :
 
 
@@ -26,19 +26,7 @@ SIZES_COMMA := $(shell echo "$(SIZES)" | sed 's/ /, /g')
 
 
 
-all : \
-	img/z-butt-1u-family-photo.png \
-	img/z-butt-2u-family-photo.png \
-	img/z-butt-all-family-photo.png \
-	$(STL_MX_MASTER_BASE) \
-	$(STL_MX_SCULPT_BASE) \
-	$(STL_MX_STEM_CAVITY) \
-	$(STL_MX_SPRUES_ONLY) \
-	$(STL_AL_MASTER_BASE) \
-	$(STL_AL_SCULPT_BASE) \
-	$(STL_AL_STEM_CAVITY) \
-	$(STL_AL_SPRUES_ONLY) \
-	$(STL_CONTAINER)
+all : stl img
 
 clean :
 	rm -rf \
@@ -49,6 +37,21 @@ clean :
 	  scad/z-butt-*.scad \
 	  z-butt-openscad-stl.zip
 
+stl : \
+	$(STL_MX_MASTER_BASE) \
+	$(STL_MX_SCULPT_BASE) \
+	$(STL_MX_STEM_CAVITY) \
+	$(STL_MX_SPRUES_ONLY) \
+	$(STL_AL_MASTER_BASE) \
+	$(STL_AL_SCULPT_BASE) \
+	$(STL_AL_STEM_CAVITY) \
+	$(STL_AL_SPRUES_ONLY) \
+	$(STL_CONTAINER)
+
+img : \
+	img/z-butt-1u-family-photo.png \
+	img/z-butt-2u-family-photo.png \
+	img/z-butt-all-family-photo.png \
 
 release : z-butt-openscad-stl.zip
 
@@ -63,11 +66,18 @@ else
 endif
 
 
+img/z-butt-1u-family-photo.png : CROP := -crop 870x570+0+240
+img/z-butt-2u-family-photo.png : CROP := -crop 870x570+0+240
+img/z-butt-all-family-photo.png : CROP := -crop 870x720+0+100
 img/%.png : scad/%.scad scad/z-butt.scad
 	openscad \
 	  --imgsize=870,870 \
 	  -o /tmp/$*.png $<
+ifneq (, $(shell which convert))
+	convert $(CROP) /tmp/$*.png $@
+else
 	mv /tmp/$*.png $@
+endif
 
 
 scad/z-butt-%u-mx-master-base.scad :
