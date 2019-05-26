@@ -68,8 +68,9 @@ key_sculpt_diameter = 5.82;
 
 container_thickness = 2;
 container_overlap = 2;
-container_height = 30;  // Includes bottom wall 
+container_height = 28;  // Internal height
 container_bevel = 1;
+container_inset = 0;  // XY Gap between contents and internal container walls.
 
 
 // Internal Parameters
@@ -123,10 +124,11 @@ module rotate_z_copy (angle) {
 }
 
 
-module mirror_copy (v) {
-     children();
-     mirror(v) {
-          children();
+module translate_copy (v, n=2) {
+     for (i = [0 : n - 1]) {
+          translate([v[0] * i, v[1] * i, v[2] * i]) {
+               children();
+          }
      }
 }
 
@@ -659,67 +661,105 @@ module al_sprues_only (xu=1) {
 }
 
 
-module container (xu=1) {
+module container (xu=1, xn=2) {
      plate_x = calc_plate_size(xu);
      plate_y = calc_plate_size();
 
-     color("khaki") {
+     dx = (plate_x + container_thickness);
+     dy = container_overlap / 2;
+     ch = container_overlap - (container_thickness / 2);
+     height = container_height + container_overlap;
+
+     module positive () {
           difference () {
-               minkowski () {
-                    translate([-container_bevel, 0, 0]) {
+               translate([0, -dy, 0]) {
+                    minkowski () {
                          scale([
-                                    plate_x / 2 + container_thickness * 2 - container_bevel * 2,
-                                    plate_y * 2 + container_thickness * 3 - container_bevel * 2,
-                                    container_height
+                                    dx * xn + container_thickness - container_bevel * 2,
+                                    plate_y / 2 + container_thickness + dy - container_bevel,
+                                    height
                                     ]) {
-                              translate([0, -.5, 0]) {
+                              translate([-0.5, 0, 0]) {
                                    cube([1, 1, 1]);
                               }
                          }
-                    }
-                    scale([1, 1, 0]) {
-                         sphere(container_bevel, $fn=16);
+                         scale([1, 1, 0]) {
+                              sphere(container_bevel, $fn=32);
+                         }
                     }
                }
-               union() {
-                    mirror_copy([0, 1, 0]) {
-                         translate([plate_x / 2, plate_y / 2 + container_thickness / 2, container_thickness]) {
-                              scale([plate_x / 2 + container_thickness * 2, plate_y, container_height]) {
-                                   translate([-1, -0.5, 0]) {
-                                        cube([1, 1, 1]);
-                                   }
-                              }
-                         }
-                         translate([0, plate_y / 2 + container_thickness / 2, 0]) {
-                              hull() {
-                                   scale([container_thickness, plate_y, container_thickness / 2]) {
-                                        translate([-0.5, -0.5, 0]) {
-                                             cube([1, 1, 1]);
-                                        }
-                                   }
-                                   scale([container_thickness * 2, plate_y, container_thickness / 2]) {
-                                        translate([-0.5, -0.5, -1]) {
-                                             cube([1, 1, 1]);
-                                        }
-                                   }
-                              }
+               translate([0, -dy, -overlap]) {
+                    scale([
+                               dx * xn + container_thickness + overlap * 2,
+                               container_bevel + overlap,
+                               height + overlap * 2
+                               ]) {
+                         translate([-0.5, -1, 0]) {
+                              cube([1, 1, 1]);
                          }
                     }
-                    translate([-container_thickness * .5, 0, 0]) {
-                         scale([container_thickness * 2, plate_y * 3, container_height * 3]) {
-                              translate([-1, -0.5, -0.5]) {
-                                   cube([1, 1, 1]);
-                              }
-                         }
+               }
+          }
+     }
+
+     module negative_internal () {
+          translate([
+                         container_thickness / 2 - container_inset,
+                         -dy - overlap,
+                         container_overlap]) {
+               cube([
+                         plate_x + container_inset * 2,
+                         (plate_y + container_overlap) / 2 + container_inset + overlap,
+                         height + overlap * 2
+                         ]) {
+               }
+          }
+     }
+
+     module negative_connection () {
+          translate([-dx / 2, -dy - overlap, -overlap]) {
+               cube([
+                         dx / 2,
+                         container_overlap,
+                         height + overlap * 2
+                         ]) {
+               }
+          }
+          hull() {
+               translate([-dx / 2, -dy - overlap, 0]) {
+                    cube([
+                              dx / 2,
+                              container_overlap,
+                              ch
+                              ]) {
                     }
-                    for (y = [-1, 0, 1]) {
-                         translate([container_thickness * .5, (plate_y + container_thickness) * y, 0]) {
-                              scale([container_thickness * 3, plate_y / 2 + container_thickness / 2, container_height * 3]) {
-                                   translate([-1, 0, -0.5]) {
-                                        cube([1, 1, 1]);
-                                   }
-                              }
-                         }
+               }
+               translate([-dx / 2 - ch, -dy - overlap, -overlap]) {
+                    cube([
+                              dx / 2 + ch,
+                              container_overlap + ch,
+                              overlap
+                              ]) {
+                    }
+               }
+          }
+          hull() {
+               translate([container_thickness / 2, -dy - overlap, -overlap]) {
+                    cube([plate_x, overlap, ch]);
+                    cube([plate_x, ch, overlap]);
+               }
+          }
+     }
+
+     color("khaki") {
+          difference () {
+               positive();
+               translate([dx * xn * -0.5, 0, 0]) {
+                    translate_copy([dx, 0, 0], xn) {
+                         negative_internal();
+                    }
+                    translate_copy([dx, 0, 0], xn + 1) {
+                         negative_connection();
                     }
                }
           }
@@ -728,8 +768,6 @@ module container (xu=1) {
 
 
 module family_photo (sizes) {
-     x_max = calc_plate_size(max(sizes));
-
      for (i = [0 : len(sizes) - 1]) {
           xu = sizes[i];
           cx = (calc_plate_size(xu) + 8) / 2;
@@ -780,10 +818,8 @@ module family_photo (sizes) {
                }
           }
      
-          translate([cx - x_max * 1.5 - 32, cy / 2, cz]) {
-               rotate([0, 0, 180]) {
-                    container(xu);
-               }
+          translate([0, cy * 4, cz]) {
+               container(xu=xu, xn=(xu < 2 ? 2 : 1));
           }
      }
 }

@@ -2,9 +2,6 @@
 
 An exploratory port of Zappycobra's [Z-Butt](https://github.com/imyownyear/Z-Butt) system to OpenSCAD.
 
-
-## Models
-
 STL models are available for download in the [releases](https://github.com/yatara-cc/z-butt-openscad/releases) section.
 
 
@@ -35,8 +32,9 @@ mx_master_base(xu=2);
 ### Parameters
 
 -   Measurements can be altered by changing values in the “User Parameters” section of the `z-butt.scad` library. Of particular note:
-    -   `sprue_max_distance` can be used to make sprue placement denser or sparser
-    -   `mx_offset` can be used to tune the fitment of the MX cross
+    -   `sprue_max_distance`: make sprue placement denser or sparser
+    -   `mx_offset`: tune the fitment of the MX cross
+    -   `container_inset` tune the gap to the internal walls of the container
 -   MX stems for stabilizers have been included on larger spacebars, though these are tentative and it is advised to check them before printing. Stem placement can be edited in the functions `switches_xu` and `stabilizers_xu`.
 
 

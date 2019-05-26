@@ -66,9 +66,9 @@ else
 endif
 
 
-img/z-butt-1u-family-photo.png : CROP := -crop 870x570+0+240
-img/z-butt-2u-family-photo.png : CROP := -crop 870x570+0+240
-img/z-butt-all-family-photo.png : CROP := -crop 870x720+0+100
+img/z-butt-1u-family-photo.png : CROP := -crop 870x620+0+160
+img/z-butt-2u-family-photo.png : CROP := -crop 870x620+0+160
+img/z-butt-all-family-photo.png : CROP := -crop 870x780+0+60
 img/%.png : scad/%.scad scad/z-butt.scad
 	openscad \
 	  --imgsize=3480,3480 \
