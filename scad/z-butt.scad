@@ -33,11 +33,12 @@ sprue_max_distance = base_size / 2;
 sprue_plate_height = 1;
 sprue_plate_width = 1.5;
 
-mx_width = 3.9;
+mx_width = 4.21;
 mx_thickness = 1.25;
 mx_offset = 0.1;  // Gap between positive and negative models.
+mx_cone = 1;
 mx_bevel = 0.25;
-mx_diameter = 5.8;
+mx_diameter = 5.6;
 mx_height_base = 3;
 mx_height_cavity = 5;
 
@@ -344,7 +345,7 @@ module mx_sprues_stem (height) {
      for (i = [0 : 3]) {
           rotate([0, 0, 45 + 90 * i]) {
                translate([-d, 0, -height]) {
-                    cylinder(h=height, d=sprue_diameter_stem);
+                    cylinder(h=height + mx_cone, d=sprue_diameter_stem);
                }
           }
      }
@@ -364,7 +365,7 @@ module al_sprues_stem (height) {
 
 module mx_stem () {
      translate([0, 0, -overlap]) {
-          cylinder(h=(key_cavity_height + overlap), d=mx_diameter, $fn=48);
+          cylinder(h=(key_cavity_height + overlap * 3), d=mx_diameter, $fn=48);
      }
 }
 
@@ -553,19 +554,26 @@ module stem_cavity_mm (xu=1) {
 module mx_stem_cavity (xu=1) {
      union () {
           color("CornflowerBlue") {
-               difference() {
-                    union() {
-                         stem_cavity(xu=xu);
-                         sprues_base(sprue_height, xu, $fn=48);
-                         stem_copy(xu) {
-                              mx_sprues_stem(sprue_height, $fn=48);
+               union() {
+                    difference() {
+                         union() {
+                              stem_cavity(xu=xu);
+                              sprues_base(sprue_height, xu, $fn=48);
+                              stem_copy(xu) {
+                                   mx_stem();
+                              }
                          }
                          stem_copy(xu) {
-                              mx_stem();
+                              union() {
+                                   mx_cross(key_cavity_height);
+                                   translate([0, 0, -overlap * 2]) {
+                                        cylinder(d1=mx_width, d2=0, h=mx_cone, $fn=32);
+                                   }
+                              }
                          }
                     }
                     stem_copy(xu) {
-                         mx_cross(key_cavity_height);
+                         mx_sprues_stem(sprue_height, $fn=48);
                     }
                }
           }
