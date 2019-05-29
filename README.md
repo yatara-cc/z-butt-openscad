@@ -34,11 +34,11 @@ STL models are available for download in the [releases](https://github.com/yatar
 #### Prefixes and Arguments
 
 -   `mx` module prefix is for Cherry MX stems
--   `al` module prefix is for Alps stems.
-`   `xu` = Number of key units in X (1 unit is 19.05mm or 0.75 inches).
-`   `yu` = Number of key units in Y
-`   `name` = Name of specially-shaped key, eg. `iso-enter`
-`   `xn` = Number of compartments in a container
+-   `al` module prefix is for Alps stems
+-   `xu`: number of key units in X (1 unit is 19.05mm or 0.75 inches).
+-   `yu`: Number of key units in Y
+-   `name`: Name of specially-shaped key, eg. `iso-enter`, `big-ass-enter`
+-   `xn`: Number of compartments in a container
 
 
 ### Examples

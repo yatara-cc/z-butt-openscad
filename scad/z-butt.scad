@@ -98,6 +98,7 @@ function calc_key_sculpt_size (u=1) = key_sculpt_size + unit_u * (u - 1);
 // See `https://deskthority.net/wiki/Space_by_keyboard`.
 function stabilizers_xy (xu=1, yu=1, name="") = 
      (name == "iso-enter") ? [[0.125, -0.5], [0.125, 0.5]] :
+     (name == "big-ass-enter") ? [[0.5, -0.5], [0.5, 0.5]] :
      (xu == 7) ? [[-3, 0], [3, 0]] :
      (xu == 6.25) ? [[-xu / 2 + 0.5, 0], [-xu / 2 + 5.75, 0]] :  // (Cherry)
      (xu == 6) ? [[-2.5, 0], [2.5, 0]] :  // (Cherry)
@@ -110,6 +111,7 @@ function stabilizers_xy (xu=1, yu=1, name="") =
 // See `https://deskthority.net/wiki/Space_by_keyboard`.
 function switches_xy (xu=1, yu=1, name="") = 
      (name == "iso-enter") ? [[0.125, 0]] :
+     (name == "big-ass-enter") ? [[0.5, 0], [-0.625, -0.5]] :
      (xu == 7) ? [[0, 0]] :
      (xu == 6.25) ? [[-xu / 2 + 3.75, 0]] :  // (Cherry)
      (xu == 6) ? [[0.5, 0]] :  // (Cherry)
@@ -245,6 +247,15 @@ module base (xu=1, yu=1, name="") {
                     base(1.25, 2);
                }
           }
+     } else if (name == "big-ass-enter") {
+          union() {
+               translate([0.375 * unit_u, 0, 0]) {
+                    base(1.5, 2);
+               }
+               translate([0, -0.5 * unit_u, 0]) {
+                    base(2.25, 1);
+               }
+          }
      } else {
           size_x = calc_base_size(xu);
           size_y = calc_base_size(yu);
@@ -266,6 +277,15 @@ module indent (xu, yu, name="") {
                }
                translate([0.125 * unit_u, 0, 0]) {
                     indent(1.25, 2);
+               }
+          }
+     } else if (name == "big-ass-enter") {
+          union() {
+               translate([0.375 * unit_u, 0, 0]) {
+                    indent(1.5, 2);
+               }
+               translate([0, -0.5 * unit_u, 0]) {
+                    indent(2.25, 1);
                }
           }
      } else {
@@ -303,6 +323,15 @@ module key_sculpt (xu=1, yu=1, name="") {
                }
                translate([0.125 * unit_u, 0, 0]) {
                     key_sculpt(1.25, 2);
+               }
+          }
+     } else if (name == "big-ass-enter") {
+          union() {
+               translate([0.375 * unit_u, 0, 0]) {
+                    key_sculpt(1.5, 2);
+               }
+               translate([0, -0.5 * unit_u, 0]) {
+                    key_sculpt(2.25, 1);
                }
           }
      } else {
@@ -382,6 +411,47 @@ module sprues_base (height, xu=1, yu=1, name="") {
           rotate([0, 0, 180]) {
                translate([-dxa / 2, dya / 2, 0]) {
                     sprue_copy(dxb, sprue_max_distance, include_last=false) {
+                         sprue_base(height);
+                    }
+               }
+          }
+          rotate([0, 0, 270]) {
+               translate([-dya / 2, dxa / 2, 0]) {
+                    sprue_copy(dya, sprue_max_distance, include_last=false) {
+                         sprue_base(height);
+                    }
+               }
+          }
+     } else if (name == "big-ass-enter") {
+          dxa = calc_base_size(2.25);
+          dxb = calc_base_size(1.5);
+          dya = calc_base_size(2);
+          dyb = calc_base_size(1);
+          translate([dxa / 2 - dxb, dya / 2, 0]) {
+               sprue_copy(dxb, sprue_max_distance, include_last=false) {
+                    sprue_base(height);
+               }
+          }
+          translate([-dxa / 2, dyb - (dya / 2), 0]) {
+               sprue_copy(dxa - dxb, sprue_max_distance, include_last=false) {
+                    sprue_base(height);
+               }
+          }
+          rotate([0, 0, 90]) {
+               translate([dyb - (dya / 2), dxb - dxa / 2, 0]) {
+                    sprue_copy(dya - dyb, sprue_max_distance, include_last=false) {
+                         sprue_base(height);
+                    }
+               }
+               translate([-dya / 2, dxa / 2, 0]) {
+                    sprue_copy(dyb, sprue_max_distance, include_last=false) {
+                         sprue_base(height);
+                    }
+               }
+          }
+          rotate([0, 0, 180]) {
+               translate([-dxa / 2, dya / 2, 0]) {
+                    sprue_copy(dxa, sprue_max_distance, include_last=false) {
                          sprue_base(height);
                     }
                }
@@ -629,7 +699,19 @@ module stem_cavity (xu=1, yu=1, name="") {
                     }
                }
           }
-     } else {
+     } else if (name == "big-ass-enter") {
+          difference() {
+               stem_cavity_positive(xu=2.25, yu=2);
+               union() {
+                    translate([0.375 * unit_u, 0, 0]) {
+                         stem_cavity_negative(xu=1.5, yu=2);
+                    }
+                    translate([0, -0.5 * unit_u, 0]) {
+                         stem_cavity_negative(xu=2.25, yu=1);
+                    }
+               }
+          }
+     } {
           difference() {
                stem_cavity_positive(xu=xu, yu=yu);
                stem_cavity_negative(xu=xu, yu=yu);
@@ -734,7 +816,7 @@ module sprues_only_base (xu=1, yu=1, name="") {
                stem_copy(xu=xu, yu=yu, name=name) {
                     circle(d=mx_diameter, $fn=48);
                }
-               if (yu > xu) {
+               if (name != "" || yu > xu) {
                     rotate([0, 0, 90]) {
                          translate([-base_y / 2, 0, 0]) {
                               sprue_copy(base_y, include_last=true) {
@@ -943,6 +1025,8 @@ module family_photo (xu_list, name="") {
 
      if (name == "iso-enter") {
           photo(xu=1.5, yu=2, name=name);
+     } else if (name == "big-ass-enter") {
+          photo(xu=2.25, yu=2, name=name);
      } else {
           for (i = [0 : len(xu_list) - 1]) {
                photo(xu=xu_list[i], i=i);
