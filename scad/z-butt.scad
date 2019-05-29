@@ -96,22 +96,24 @@ function calc_key_sculpt_size (u=1) = key_sculpt_size + unit_u * (u - 1);
 
 
 // See `https://deskthority.net/wiki/Space_by_keyboard`.
-function stabilizers_xu (xu) = 
-     (xu == 7) ? [0.5, 6.5] :
-     (xu == 6.25) ? [0.5, 5.75] :  // (Cherry)
-     (xu == 6) ? [0.5, 5.5] :  // (Cherry)
-     (xu == 4) ? [xu / 2 - 1.5, xu / 2 + 1.5] :
-     (xu == 3) ? [xu / 2 - 1, xu / 2 + 1] :
-     (xu >= 2) ? [xu / 2 - .5, xu / 2 + .5] :
+function stabilizers_xy (xu=1, yu=1, name="") = 
+     (name == "iso-enter") ? [[0.125, -0.5], [0.125, 0.5]] :
+     (xu == 7) ? [[-3, 0], [3, 0]] :
+     (xu == 6.25) ? [[-xu / 2 + 0.5, 0], [-xu / 2 + 5.75, 0]] :  // (Cherry)
+     (xu == 6) ? [[-2.5, 0], [2.5, 0]] :  // (Cherry)
+     (xu == 4) ? [[-1.5, 0], [1.5, 0]] :
+     (xu == 3) ? [[-1, 0], [1, 0]] :
+     (xu >= 2) ? [[-0.5, 0], [0.5, 0]] :
      [];
 
 
 // See `https://deskthority.net/wiki/Space_by_keyboard`.
-function switches_xu (xu) = 
-     (xu == 7) ? [3.5] :
-     (xu == 6.25) ? [3.75] :  // (Cherry)
-     (xu == 6) ? [3.5] :  // (Cherry)
-     [xu / 2];
+function switches_xy (xu=1, yu=1, name="") = 
+     (name == "iso-enter") ? [[0.125, 0]] :
+     (xu == 7) ? [[0, 0]] :
+     (xu == 6.25) ? [[-xu / 2 + 3.75, 0]] :  // (Cherry)
+     (xu == 6) ? [[0.5, 0]] :  // (Cherry)
+     [[0, 0]];
 
 
 // Generic Geometry Modules
@@ -181,18 +183,17 @@ module bevel_corner_square (sx, sy, r, n) {
 // Z-Butt Components
 
 
-module stem_copy (xu, switches=true, stabilizers=true) {
-     cx = -xu / 2;
+module stem_copy (xu=1, yu=1, name="", switches=true, stabilizers=true) {
      if (switches) {
-          for (x = switches_xu(xu)) {
-               translate([unit_u * (cx + x), 0, 0]) {
+          for (xy = switches_xy(xu=xu, yu=yu, name=name)) {
+               translate([unit_u * xy[0], unit_u * xy[1], 0]) {
                     children();
                }
           }
      }
      if (stabilizers) {
-          for (x = stabilizers_xu(xu)) {
-               translate([unit_u * (cx + x), 0, 0]) {
+          for (xy = stabilizers_xy(xu=xu, yu=yu, name=name)) {
+               translate([unit_u * xy[0], unit_u * xy[1], 0]) {
                     children();
                }
           }
@@ -200,18 +201,18 @@ module stem_copy (xu, switches=true, stabilizers=true) {
 }
 
 
-module top_plate (xu) {
+module top_plate (xu=1, yu=1) {
      size_x = calc_plate_size(xu);
-     size_y = calc_plate_size();
+     size_y = calc_plate_size(yu);
 
      chamfered_cube (size_x, size_y, key_cavity_height + 2,
                      key_cavity_height + 1, key_cavity_height + 1);
 }
 
 
-module bottom_plate (xu) {
+module bottom_plate (xu=1, yu=1) {
      size_x = calc_plate_size(xu);
-     size_y = calc_plate_size();
+     size_y = calc_plate_size(yu);
 
      rotate([180, 0, 0]) {
           chamfered_cube (size_x, size_y, plate_height, 1, 1);
@@ -219,37 +220,62 @@ module bottom_plate (xu) {
 }
 
 
-module registration_cube (xu, offset=0) {
+module registration_cube (xu=1, yu=1, offset=0) {
      size_x = calc_plate_size(xu) - regst_inset;
-     size_y = calc_plate_size() - regst_inset;
-     
+     size_y = calc_plate_size(yu) - regst_inset;
+
      translate([0, 0, -regst_height]) {
           linear_extrude(regst_height + overlap) {
                bevel_corner_square(
-                    size_x + offset, size_y + offset,
+                    size_x + offset,
+                    size_y + offset,
                     regst_radius + offset, 25);
           }
      }
 }
 
 
-module base (xu) {
-     size_x = calc_base_size(xu);
+module base (xu=1, yu=1, name="") {
+     if (name == "iso-enter") {
+          union() {
+               translate([0, 0.5 * unit_u, 0]) {
+                    base(1.5, 1);
+               }
+               translate([0.125 * unit_u, 0, 0]) {
+                    base(1.25, 2);
+               }
+          }
+     } else {
+          size_x = calc_base_size(xu);
+          size_y = calc_base_size(yu);
      
-     scale([size_x, base_size, regst_height + overlap]) {
-          translate([-.5, -.5, -1]) {
-               cube([1, 1, 1]);
+          scale([size_x, size_y, regst_height + overlap]) {
+               translate([-.5, -.5, -1]) {
+                    cube([1, 1, 1]);
+               }
           }
      }
 }
 
 
-module indent (xu) {
-     size_x = indent_size + unit_u * (xu - 1);
+module indent (xu, yu, name="") {
+     if (name == "iso-enter") {
+          union() {
+               translate([0, 0.5 * unit_u, 0]) {
+                    indent(1.5, 1);
+               }
+               translate([0.125 * unit_u, 0, 0]) {
+                    indent(1.25, 2);
+               }
+          }
+     } else {
+          size_x = indent_size + unit_u * (xu - 1);
+          size_y = indent_size + unit_u * (yu - 1);
      
-     translate([0, 0, overlap]) {
-          rotate([180, 0, 0]) {
-               chamfered_cube(size_x, indent_size, indent_depth + overlap, indent_depth, indent_depth);
+          translate([0, 0, overlap]) {
+               rotate([180, 0, 0]) {
+                    chamfered_cube(size_x, size_y, indent_depth + overlap, indent_depth, indent_depth);
+               }
           }
      }
 }
@@ -269,19 +295,30 @@ module bevelled_key (sx, sy, sz, ch_xy, bevel) {
 }
 
 
-module key_sculpt (xu) {
-     inset = 2 * key_sculpt_bevel;
-     sx = calc_key_sculpt_size(xu) - inset;
-     sy = calc_key_sculpt_size() - inset;
+module key_sculpt (xu=1, yu=1, name="") {
+     if (name == "iso-enter") {
+          union() {
+               translate([0, 0.5 * unit_u, 0]) {
+                    key_sculpt(1.5, 1);
+               }
+               translate([0.125 * unit_u, 0, 0]) {
+                    key_sculpt(1.25, 2);
+               }
+          }
+     } else {
+          inset = 2 * key_sculpt_bevel;
+          sx = calc_key_sculpt_size(xu) - inset;
+          sy = calc_key_sculpt_size(yu) - inset;
 
-     bevelled_key(sx, sy, key_sculpt_height, key_sculpt_ch_xy, key_sculpt_bevel, $fn=64);
+          bevelled_key(sx, sy, key_sculpt_height, key_sculpt_ch_xy, key_sculpt_bevel, $fn=64);
+     }
 }
 
 
-module key_cavity (xu) {
+module key_cavity (xu=1, yu=1) {
      inset = 2 * key_cavity_bevel;
      sx = calc_key_cavity_size(xu) - inset;
-     sy = calc_key_cavity_size() - inset;
+     sy = calc_key_cavity_size(yu) - inset;
 
      bevelled_key(sx, sy, key_cavity_height, key_cavity_ch_xy, key_cavity_bevel, $fn=32);
 }
@@ -305,6 +342,7 @@ module sprue_base (height) {
 module sprue_copy (length, include_last=false) {
      n = floor(length / sprue_max_distance);
      x = length / n;
+     
      for (i = [0 : n - 1]) {
           translate([x * i, 0, 0]) {
                children();
@@ -318,20 +356,58 @@ module sprue_copy (length, include_last=false) {
 }
 
 
-module sprues_base (height, xu) {
-     dx = calc_base_size(xu);
-     dy = calc_base_size();
-
-     rotate_z_copy(180) {
-          translate([-dx / 2, -dy / 2, 0]) {
-               sprue_copy(dx, sprue_max_distance) {
+module sprues_base (height, xu=1, yu=1, name="") {
+     if (name == "iso-enter") {
+          dxa = calc_base_size(1.5);
+          dxb = calc_base_size(1.25);
+          dya = calc_base_size(2);
+          dyb = calc_base_size(1);
+          translate([-dxa / 2, dya / 2, 0]) {
+               sprue_copy(dxa, sprue_max_distance, include_last=false) {
                     sprue_base(height);
                }
           }
           rotate([0, 0, 90]) {
-               translate([-dy / 2, -dx / 2, 0]) {
-                    sprue_copy(dy, sprue_max_distance) {
+               translate([-dya / 2, dxb - dxa / 2, 0]) {
+                    sprue_copy(dya - dyb, sprue_max_distance) {
                          sprue_base(height);
+                    }
+               }
+               translate([(dya / 2) - dyb, dxa / 2, 0]) {
+                    sprue_copy(dyb, sprue_max_distance, include_last=false) {
+                         sprue_base(height);
+                    }
+               }
+          }
+          rotate([0, 0, 180]) {
+               translate([-dxa / 2, dya / 2, 0]) {
+                    sprue_copy(dxb, sprue_max_distance, include_last=false) {
+                         sprue_base(height);
+                    }
+               }
+          }
+          rotate([0, 0, 270]) {
+               translate([-dya / 2, dxa / 2, 0]) {
+                    sprue_copy(dya, sprue_max_distance, include_last=false) {
+                         sprue_base(height);
+                    }
+               }
+          }
+     } else {
+          dx = calc_base_size(xu);
+          dy = calc_base_size(yu);
+
+          rotate_z_copy(180) {
+               translate([-dx / 2, -dy / 2, 0]) {
+                    sprue_copy(dx, sprue_max_distance) {
+                         sprue_base(height);
+                    }
+               }
+               rotate([0, 0, 90]) {
+                    translate([-dy / 2, -dx / 2, 0]) {
+                         sprue_copy(dy, sprue_max_distance) {
+                              sprue_base(height);
+                         }
                     }
                }
           }
@@ -432,27 +508,27 @@ module al_stem () {
 }
 
 
-module master_base (xu=1) {
+module master_base (xu=1, yu=1, name="") {
      union () {
           difference() {
-               bottom_plate(xu);
-               registration_cube(xu, regst_offset);
+               bottom_plate(xu=xu, yu=yu);
+               registration_cube(xu=xu, yu=yu, offset=regst_offset);
           }
           difference() {
-               base(xu);
-               indent(xu);
+               base(xu=xu, yu=yu, name=name);
+               indent(xu=xu, yu=yu, name=name);
           }
-          sprues_base(regst_height + overlap, xu, $fn=48);
+          sprues_base(regst_height + overlap, xu=xu, yu=yu, name=name, $fn=48);
      }
 }
 
 
-module mx_master_base (xu=1) {
+module mx_master_base (xu=1, yu=1, name="") {
      color("LightSteelBlue") {
           union () {
-               master_base(xu=xu);
+               master_base(xu=xu, yu=yu, name=name);
                translate([0, 0, -indent_depth - overlap]) {
-                    stem_copy(xu) {
+                    stem_copy(xu=xu, yu=yu, name=name) {
                          mx_cross(mx_height_base + indent_depth + overlap, offset=-mx_offset);
                     }
                }
@@ -461,15 +537,15 @@ module mx_master_base (xu=1) {
 }
 
 
-module al_master_base (xu=1) {
+module al_master_base (xu=1, yu=1, name="") {
      color("LightSteelBlue") {
           union () {
-               master_base(xu=xu);
+               master_base(xu=xu, yu=yu, name=name);
                translate([0, 0, -indent_depth - overlap]) {
-                    stem_copy(xu, stabilizers=false) {
+                    stem_copy(xu=xu, yu=yu, name=name, stabilizers=false) {
                          al_switch_stem(al_height + indent_depth + overlap);
                     }
-                    stem_copy(xu, switches=false) {
+                    stem_copy(xu=xu, yu=yu, name=name, switches=false) {
                          mx_cross(mx_height_base + indent_depth + overlap, offset=-mx_offset);
                     }
                }
@@ -478,25 +554,25 @@ module al_master_base (xu=1) {
 }
 
 
-module sculpt_base (xu=1) {
+module sculpt_base (xu=1, yu=1, name="") {
      union () {
           difference() {
-               bottom_plate(xu);
-               registration_cube(xu, regst_offset);
+               bottom_plate(xu=xu, yu=yu);
+               registration_cube(xu=xu, yu=yu, offset=regst_offset);
           }
-          sprues_base(regst_height + overlap, xu, $fn=48);
-          base(xu);
-          key_sculpt(xu);
+          sprues_base(regst_height + overlap, xu=xu, yu=yu, name=name, $fn=48);
+          base(xu=xu, yu=yu, name=name);
+          key_sculpt(xu=xu, yu=yu, name=name);
      }
 }
 
 
-module mx_sculpt_base (xu=1) {
+module mx_sculpt_base (xu=1, yu=1, name="") {
      color("SteelBlue") {
           difference() {
-               sculpt_base(xu=xu);
+               sculpt_base(xu=xu, yu=yu, name=name);
                translate([0, 0, key_sculpt_height - key_cavity_height]) {
-                    stem_copy(xu) {
+                    stem_copy(xu=xu, yu=yu, name=name) {
                          cylinder(h=key_cavity_height + overlap, d=key_sculpt_diameter, $fn=48);
                     }
                }
@@ -505,17 +581,17 @@ module mx_sculpt_base (xu=1) {
 }
 
 
-module al_sculpt_base (xu=1) {
+module al_sculpt_base (xu=1, yu=1, name="") {
      color("SteelBlue") {
           difference() {
-               sculpt_base(xu=xu);
+               sculpt_base(xu=xu, yu=yu, name=name);
                translate([0, 0, key_sculpt_height - key_cavity_height]) {
-                    stem_copy(xu, stabilizers=false) {
+                    stem_copy(xu=xu, yu=yu, name=name, stabilizers=false) {
                          linear_extrude(key_cavity_height + overlap) {
                               al_inner_2d();
                          }
                     }
-                    stem_copy(xu, switches=false) {
+                    stem_copy(xu=xu, yu=yu, name=name, switches=false) {
                          cylinder(h=key_cavity_height + overlap, d=key_sculpt_diameter, $fn=48);
                     }
                }
@@ -524,21 +600,45 @@ module al_sculpt_base (xu=1) {
 }
 
 
-module stem_cavity (xu=1) {
-     difference() {
-          union() {
-               top_plate(xu);
-               registration_cube(xu);
+module stem_cavity_positive (xu=1, yu=1) {
+     union() {
+          top_plate(xu=xu, yu=yu);
+          registration_cube(xu=xu, yu=yu);
+     }
+}
+
+
+module stem_cavity_negative (xu=1, yu=1) {
+     union() {
+          base(xu=xu, yu=yu);
+          key_cavity(xu=xu, yu=yu);
+     }
+}
+
+
+module stem_cavity (xu=1, yu=1, name="") {
+     if (name == "iso-enter") {
+          difference() {
+               stem_cavity_positive(xu=1.5, yu=2);
+               union() {
+                    translate([0, 0.5 * unit_u, 0]) {
+                         stem_cavity_negative(xu=1.5);
+                    }
+                    translate([0.125 * unit_u, 0, 0]) {
+                         stem_cavity_negative(xu=1.25, yu=2);
+                    }
+               }
           }
-          union() {
-               base(xu);
-               key_cavity(xu);
+     } else {
+          difference() {
+               stem_cavity_positive(xu=xu, yu=yu);
+               stem_cavity_negative(xu=xu, yu=yu);
           }
      }
 }
 
 
-module stem_cavity_mm (xu=1) {
+module stem_cavity_mm (xu=1, yu=1) {
      color("Yellow") {
           translate([0, key_cavity_size / 2, 0]) {
                rotate([-atan(key_cavity_height / key_cavity_ch_xy), 180, 180]) {
@@ -551,19 +651,19 @@ module stem_cavity_mm (xu=1) {
 }
 
 
-module mx_stem_cavity (xu=1) {
+module mx_stem_cavity (xu=1, yu=1, name="") {
      union () {
           color("CornflowerBlue") {
                union() {
                     difference() {
                          union() {
-                              stem_cavity(xu=xu);
-                              sprues_base(sprue_height, xu, $fn=48);
-                              stem_copy(xu) {
+                              stem_cavity(xu=xu, yu=yu, name=name);
+                              sprues_base(sprue_height, xu=xu, yu=yu, name=name, $fn=48);
+                              stem_copy(xu=xu, name=name, yu=yu) {
                                    mx_stem();
                               }
                          }
-                         stem_copy(xu) {
+                         stem_copy(xu=xu, yu=yu, name=name) {
                               union() {
                                    mx_cross(key_cavity_height);
                                    translate([0, 0, -overlap * 2]) {
@@ -572,50 +672,51 @@ module mx_stem_cavity (xu=1) {
                               }
                          }
                     }
-                    stem_copy(xu) {
+                    stem_copy(xu=xu, yu=yu, name=name) {
                          mx_sprues_stem(sprue_height, $fn=48);
                     }
                }
           }
-          stem_cavity_mm(xu=xu);
+          stem_cavity_mm(xu=xu, yu=yu);
      }
 }
 
 
-module al_stem_cavity (xu=1) {
+module al_stem_cavity (xu=1, yu=1, name="") {
      union () {
           color("CornflowerBlue") {
                difference() {
                     union() {
-                         stem_cavity(xu=xu);
-                         sprues_base(sprue_height, xu, $fn=48);
-                         stem_copy(xu, stabilizers=false) {
+                         stem_cavity(xu=xu, yu=yu, name=name);
+                         sprues_base(sprue_height, xu=xu, yu=yu, name=name, $fn=48);
+                         stem_copy(xu=xu, yu=yu, name=name, stabilizers=false) {
                               al_sprues_stem(sprue_height, $fn=48);
                          }
-                         stem_copy(xu, stabilizers=false) {
+                         stem_copy(xu=xu, yu=yu, name=name, stabilizers=false) {
                               al_stem();
                          }
-                         stem_copy(xu, switches=false) {
+                         stem_copy(xu=xu, yu=yu, name=name, switches=false) {
                               mx_sprues_stem(sprue_height, $fn=48);
                          }
-                         stem_copy(xu, switches=false) {
+                         stem_copy(xu=xu, yu=yu, name=name, switches=false) {
                               mx_stem();
                          }
                     }
-                    stem_copy(xu, switches=false) {
+                    stem_copy(xu=xu, yu=yu, name=name, switches=false) {
                          mx_cross(key_cavity_height);
                     }
                }
           }
-          stem_cavity_mm(xu=xu);
+          stem_cavity_mm(xu=xu, yu=yu);
      }
 }
 
 
-module sprues_only_base (xu=1) {
+module sprues_only_base (xu=1, yu=1, name="") {
      plate_x = calc_plate_size(xu);
-     plate_y = calc_plate_size();
+     plate_y = calc_plate_size(yu);
      base_x = calc_base_size(xu);
+     base_y = calc_base_size(yu);
 
      translate([0, 0, -sprue_height]) {
           linear_extrude(sprue_plate_height) {
@@ -630,12 +731,22 @@ module sprues_only_base (xu=1) {
                               regst_radius - sprue_plate_width, 25);
                     }
                }
-               stem_copy(xu) {
+               stem_copy(xu=xu, yu=yu, name=name) {
                     circle(d=mx_diameter, $fn=48);
                }
-               translate([-base_x / 2, 0, 0]) {
-                    sprue_copy(base_x, include_last=true) {
-                         square([sprue_plate_width, plate_y], center=true);
+               if (yu > xu) {
+                    rotate([0, 0, 90]) {
+                         translate([-base_y / 2, 0, 0]) {
+                              sprue_copy(base_y, include_last=true) {
+                                   square([sprue_plate_width, plate_x], center=true);
+                              }
+                         }
+                    }
+               } else {
+                    translate([-base_x / 2, 0, 0]) {
+                         sprue_copy(base_x, include_last=true) {
+                              square([sprue_plate_width, plate_y], center=true);
+                         }
                     }
                }
           }
@@ -643,35 +754,35 @@ module sprues_only_base (xu=1) {
 }
 
 
-module mx_sprues_only (xu=1) {
+module mx_sprues_only (xu=1, yu=1, name="") {
      color("SkyBlue") {
           union () {
-               sprues_base(sprue_height, xu, $fn=48);
-               stem_copy(xu) {
+               sprues_base(sprue_height, xu=xu, yu=yu, name=name, $fn=48);
+               stem_copy(xu=xu, yu=yu, name=name) {
                     mx_sprues_stem(sprue_height, $fn=48);
                }
-               sprues_only_base(xu=xu);
+               sprues_only_base(xu=xu, yu=yu, name=name);
           }
      }
 }
 
 
-module al_sprues_only (xu=1) {
+module al_sprues_only (xu=1, yu=1, name="") {
      color("SkyBlue") {
           union () {
-               sprues_base(sprue_height, xu, $fn=48);
-               stem_copy(xu) {
+               sprues_base(sprue_height, xu=xu, yu=yu, name=name, $fn=48);
+               stem_copy(xu=xu, yu=yu, name=name) {
                     al_sprues_stem(sprue_height, $fn=48);
                }
-               sprues_only_base(xu=xu);
+               sprues_only_base(xu=xu, yu=yu, name=name);
           }
      }
 }
 
 
-module container (xu=1, xn=2) {
+module container (xu=1, yu=1, xn=2) {
      plate_x = calc_plate_size(xu);
-     plate_y = calc_plate_size();
+     plate_y = calc_plate_size(yu);
 
      dx = (plate_x + container_thickness);
      dy = container_overlap / 2;
@@ -775,59 +886,66 @@ module container (xu=1, xn=2) {
 }
 
 
-module family_photo (sizes) {
-     for (i = [0 : len(sizes) - 1]) {
-          xu = sizes[i];
+module family_photo (xu_list, name="") {
+     module photo (xu=1, yu=1, name="", i=0) {
           cx = (calc_plate_size(xu) + 8) / 2;
-          cy = calc_plate_size() + 8;
+          cy = (calc_plate_size(yu) + 8);
           cz = i * -32;
 
           translate([0, 0, 0]) {
                translate([cx, 0, cz]) {
-                    mx_master_base(xu);
+                    mx_master_base(xu=xu, yu=yu, name=name);
                }
      
                translate([cx, cy, cz]) {
-                    mx_sculpt_base(xu);
+                    mx_sculpt_base(xu=xu, yu=yu, name=name);
                }
      
                translate([-cx, cy, cz]) {
                     translate([0, 0, + sprue_height]) {
-                         mx_sprues_only(xu);
+                         mx_sprues_only(xu=xu, yu=yu, name=name);
                     }
                }
                
                translate([-cx, 0, cz]) {
                     rotate([0, 180, 0]) {
-                         mx_stem_cavity(xu);
+                         mx_stem_cavity(xu=xu, yu=yu, name=name);
                     }
                }
           }
      
           translate([0, cy * 2, 0]) {
                translate([cx, 0, cz]) {
-                    al_master_base(xu);
+                    al_master_base(xu=xu, yu=yu, name=name);
                }
 
                translate([cx, cy, cz]) {
-                    al_sculpt_base(xu);
+                    al_sculpt_base(xu=xu, yu=yu, name=name);
                }
      
                translate([-cx, cy, cz]) {
                     translate([0, 0, + sprue_height]) {
-                         al_sprues_only(xu);
+                         al_sprues_only(xu=xu, yu=yu, name=name);
                     }
                }
                
                translate([-cx, 0, cz]) {
                     rotate([0, 180, 0]) {
-                         al_stem_cavity(xu);
+                         al_stem_cavity(xu=xu, yu=yu, name=name);
                     }
                }
           }
      
           translate([0, cy * 4, cz]) {
-               container(xu=xu, xn=(xu < 2 ? 2 : 1));
+               container(xu=xu, yu=yu, xn=(xu < 2 ? 2 : 1));
+          }
+     }
+
+     if (name == "iso-enter") {
+          photo(xu=1.5, yu=2, name=name);
+     } else {
+          for (i = [0 : len(xu_list) - 1]) {
+               photo(xu=xu_list[i], i=i);
           }
      }
 }

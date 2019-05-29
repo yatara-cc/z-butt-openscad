@@ -26,12 +26,13 @@ SIZES_COMMA := $(shell echo "$(SIZES)" | sed 's/ /, /g')
 
 
 
-all : stl img
+all : img stl
 
 clean :
 	rm -rf \
 	  img/z-butt-1u-family-photo.png \
 	  img/z-butt-2u-family-photo.png \
+	  img/z-butt-iso-enter-family-photo.png \
 	  img/z-butt-all-family-photo.png \
 	  stl \
 	  scad/z-butt-*.scad \
@@ -51,6 +52,7 @@ stl : \
 img : \
 	img/z-butt-1u-family-photo.png \
 	img/z-butt-2u-family-photo.png \
+	img/z-butt-iso-enter-family-photo.png \
 	img/z-butt-all-family-photo.png \
 
 release : z-butt-openscad-stl.zip
@@ -68,6 +70,7 @@ endif
 
 img/z-butt-1u-family-photo.png : CROP := -crop 870x620+0+160
 img/z-butt-2u-family-photo.png : CROP := -crop 870x620+0+160
+img/z-butt-iso-enter-family-photo.png : CROP := -crop 870x620+0+160
 img/z-butt-all-family-photo.png : CROP := -crop 870x780+0+60
 img/%.png : scad/%.scad scad/z-butt.scad
 	openscad \
@@ -110,6 +113,9 @@ scad/z-butt-%u-container.scad :
 
 scad/z-butt-%u-family-photo.scad :
 	echo -e "include <z-butt.scad>\n\n\nfamily_photo([$*]);\n" > $@
+
+scad/z-butt-iso-enter-family-photo.scad :
+	echo -e "include <z-butt.scad>\n\n\nfamily_photo(name=\"iso-enter\");\n" > $@
 
 scad/z-butt-all-family-photo.scad :
 	echo -e "include <z-butt.scad>\n\n\nfamily_photo([$(SIZES_COMMA)]);\n" > $@

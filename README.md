@@ -11,6 +11,8 @@ STL models are available for download in the [releases](https://github.com/yatar
 
 ![Z-Butt OpenSCAD 2u](img/z-butt-2u-family-photo.png)
 
+![Z-Butt OpenSCAD ISO Enter](img/z-butt-iso-enter-family-photo.png)
+
 ![Z-Butt OpenSCAD Family Photo](img/z-butt-all-family-photo.png)
 
 
@@ -19,13 +21,44 @@ STL models are available for download in the [releases](https://github.com/yatar
 `scad/z-butt.scad` is a library. It won't generate any geometry by itself. Instead it should be included in other OpenSCAD files where it's functions can be called.
 
 
-### Example
+### Modules
+
+
+-   `mx_master_base` / `al_master_base` Base for casting a silicone mould of an existing keycap.
+-   `mx_sculpt_base` / `al_sculpt_base` Base for sculpting a custom-shaped keycap
+-   `mx_stem_cavity` / `al_stem_cavity` Stem cavity base (may need to be inverted for printing).
+-   `mx_sprues_only` / `al_sprues_only` Sprues with a frame for placing inverted on top of an existing blank key when casting a cavity mold.
+-   `container` A container for casting silicone molds
+
+
+#### Prefixes and Arguments
+
+-   `mx` module prefix is for Cherry MX stems
+-   `al` module prefix is for Alps stems.
+`   `xu` = Number of key units in X (1 unit is 19.05mm or 0.75 inches).
+`   `yu` = Number of key units in Y
+`   `name` = Name of specially-shaped key, eg. `iso-enter`
+`   `xn` = Number of compartments in a container
+
+
+### Examples
+
+
+An Alps-stem master base, 2u in the X-axis:
 
 ```
 include <z-butt.scad>
 
-// An MX-stem master base, 2u in the X-axis:
-mx_master_base(xu=2);
+al_master_base(xu=2);
+```
+
+
+An MX-stem ISO enter cavity base:
+
+```
+include <z-butt.scad>
+
+mx_stem_cavity(name="iso-enter");
 ```
 
 
