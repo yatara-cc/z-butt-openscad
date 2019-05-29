@@ -13,6 +13,7 @@ unit_lego_stud = 5 * unit_lego;
 
 plate_size = 32;
 plate_height = 3;
+plate_inset = 0;  // Distance to shrink the main plate size.
 
 regst_inset = 4;  // Distance between plate and registration block.
 regst_height = 2;
@@ -204,20 +205,19 @@ module stem_copy (xu=1, yu=1, name="", switches=true, stabilizers=true) {
 
 
 module top_plate (xu=1, yu=1) {
-     size_x = calc_plate_size(xu);
-     size_y = calc_plate_size(yu);
-
-     chamfered_cube (size_x, size_y, key_cavity_height + 2,
-                     key_cavity_height + 1, key_cavity_height + 1);
+     chamfered_cube (
+          calc_plate_size(xu) - plate_inset,
+          calc_plate_size(yu) - plate_inset,
+          key_cavity_height + 2, key_cavity_height + 1, key_cavity_height + 1);
 }
 
 
 module bottom_plate (xu=1, yu=1) {
-     size_x = calc_plate_size(xu);
-     size_y = calc_plate_size(yu);
-
      rotate([180, 0, 0]) {
-          chamfered_cube (size_x, size_y, plate_height, 1, 1);
+          chamfered_cube (
+               calc_plate_size(xu) - plate_inset,
+               calc_plate_size(yu) - plate_inset,
+               plate_height, 1, 1);
      }
 }
 
