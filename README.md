@@ -1,19 +1,28 @@
 # Z-Butt OpenSCAD
 
-An exploratory port of Zappycobra's [Z-Butt](https://github.com/imyownyear/Z-Butt) system to OpenSCAD.
+A port of Zappycobra's [Z-Butt](https://github.com/imyownyear/Z-Butt) system to OpenSCAD.
 
 STL models are available for download in the [releases](https://github.com/yatara-cc/z-butt-openscad/releases) section.
 
 
 ## Images
 
-![Z-Butt OpenSCAD 1u](img/z-butt-1u-family-photo.png)
+![Z-Butt OpenSCAD 1u MX](img/z-butt-1u-mx.jpg)
 
-![Z-Butt OpenSCAD 2u](img/z-butt-2u-family-photo.png)
+![Z-Butt OpenSCAD 2u MX](img/z-butt-2u-mx.jpg)
 
-![Z-Butt OpenSCAD ISO Enter](img/z-butt-iso-enter-family-photo.png)
+![Z-Butt OpenSCAD 1u Alps](img/z-butt-1u-al.jpg)
 
-![Z-Butt OpenSCAD Family Photo](img/z-butt-all-family-photo.png)
+![Z-Butt OpenSCAD ISO Enter](img/z-butt-iso-enter-mx.jpg)
+
+![Z-Butt OpenSCAD 7u MX](img/z-butt-7u-mx.jpg)
+
+
+## Compatibility
+
+-   MX or Alps stems for switches and stabilizers
+-   Key sizes of 1u, 1.25u, 1.5u, 1.75u, 2u, 2.25u, 2.75u, 3u, 4u, 6u, 6.25u, and 7u
+-   ISO enter and big-ass enter
 
 
 ## Usage

@@ -1,127 +1,101 @@
 SHELL := /bin/bash
 
 
-SIZES := 1 1.25 1.5 1.75 2 2.25 2.75 3 4 6 6.25 7
+XUs := 1 1.25 1.5 1.75 2 2.25 2.75 3 4 6 6.25 7
+NAMEs := iso-enter big-ass-enter
+BASEs := mx al
+PARTs := master-base sculpt-base stem-cavity sprues-only
+STLs :=
+JPGs :=
 
 
-# If Meshlab is available, clean up STLs and save them as binary.
-# Set to `true` or `false`
-CONVERT_STL_MESHLAB := true
-
-.PHONY : stl
+.PHONY : stl render
 .SECONDARY :
 
 
-STL_MX_MASTER_BASE := $(foreach xu,$(SIZES),stl/z-butt-$(xu)u-mx-master-base.stl)
-STL_MX_SCULPT_BASE := $(foreach xu,$(SIZES),stl/z-butt-$(xu)u-mx-sculpt-base.stl)
-STL_MX_STEM_CAVITY := $(foreach xu,$(SIZES),stl/z-butt-$(xu)u-mx-stem-cavity.stl)
-STL_MX_SPRUES_ONLY := $(foreach xu,$(SIZES),stl/z-butt-$(xu)u-mx-sprues-only.stl)
-STL_AL_MASTER_BASE := $(foreach xu,$(SIZES),stl/z-butt-$(xu)u-al-master-base.stl)
-STL_AL_SCULPT_BASE := $(foreach xu,$(SIZES),stl/z-butt-$(xu)u-al-sculpt-base.stl)
-STL_AL_STEM_CAVITY := $(foreach xu,$(SIZES),stl/z-butt-$(xu)u-al-stem-cavity.stl)
-STL_AL_SPRUES_ONLY := $(foreach xu,$(SIZES),stl/z-butt-$(xu)u-al-sprues-only.stl)
-STL_CONTAINER := $(foreach xu,$(SIZES),stl/z-butt-$(xu)u-container.stl)
-
-SIZES_COMMA := $(shell echo "$(SIZES)" | sed 's/ /, /g')
+all : # Redefined later
 
 
 
-all : img stl
+define KEY
+scad/z-butt-$(2)-$(1)-master-base.scad :
+	echo -e "include <z-butt.scad>\n\n\n$(1)_master_base($(3));\n" > $$@
+
+scad/z-butt-$(2)-$(1)-sculpt-base.scad :
+	echo -e "include <z-butt.scad>\n\n\n$(1)_sculpt_base($(3));\n" > $$@
+
+scad/z-butt-$(2)-$(1)-stem-cavity.scad :
+	echo -e "include <z-butt.scad>\n\n\nrotate([0, 180, 0]){$(1)_stem_cavity($(3));}\n" > $$@
+
+scad/z-butt-$(2)-$(1)-sprues-only.scad :
+	echo -e "include <z-butt.scad>\n\n\n$(1)_sprues_only($(3));\n" > $$@
+
+
+STLs := $(STLs) \
+	stl/z-butt-$(2)-$(1)-master-base.stl \
+	stl/z-butt-$(2)-$(1)-sculpt-base.stl \
+	stl/z-butt-$(2)-$(1)-stem-cavity.stl \
+	stl/z-butt-$(2)-$(1)-sprues-only.stl
+endef
+
+
+$(foreach base,$(BASEs), \
+	$(foreach xu,$(XUs),$(eval $(call KEY,$(base),$(xu)u,xu=$(xu)))) \
+	$(foreach name,$(NAMEs),$(eval $(call KEY,$(base),$(name),name=\"$(name)\"))) \
+)
+
+
+define RENDER
+
+img/z-butt-$(2)-$(1).jpg : \
+	stl/z-butt-$(2)-$(1)-master-base.stl \
+	stl/z-butt-$(2)-$(1)-sculpt-base.stl \
+	stl/z-butt-$(2)-$(1)-stem-cavity.stl \
+	stl/z-butt-$(2)-$(1)-sprues-only.stl
+
+	@mkdir -p img
+	blender -b -P render/render.py -- --name=$(2)-$(1) --output=$$@ \
+	  --samples=9 --percentage=100 \
+	  --distance=$(3) --pan=$(4) --tilt=$(5) --aim-y=$(6)
+
+JPGs := $(JPGs) img/z-butt-$(2)-$(1).jpg
+endef
+
+$(eval $(call RENDER,mx,1u,150,-20,-60,-5))
+$(eval $(call RENDER,al,1u,150,22,-60,-5))
+$(eval $(call RENDER,mx,2u,160,0,-60,-5))
+$(eval $(call RENDER,mx,7u,260,15,-60,-15))
+$(eval $(call RENDER,mx,iso-enter,200,-18,-75,-5))
+
+
+
+all : $(JPGs) $(STLs)
 
 clean :
 	rm -rf \
-	  img/z-butt-1u-family-photo.png \
-	  img/z-butt-2u-family-photo.png \
-	  img/z-butt-iso-enter-family-photo.png \
-	  img/z-butt-big-ass-enter-family-photo.png \
-	  img/z-butt-all-family-photo.png \
 	  stl \
+	  img \
 	  scad/z-butt-*.scad \
 	  z-butt-openscad-stl.zip
 
-stl : \
-	$(STL_MX_MASTER_BASE) \
-	$(STL_MX_SCULPT_BASE) \
-	$(STL_MX_STEM_CAVITY) \
-	$(STL_MX_SPRUES_ONLY) \
-	$(STL_AL_MASTER_BASE) \
-	$(STL_AL_SCULPT_BASE) \
-	$(STL_AL_STEM_CAVITY) \
-	$(STL_AL_SPRUES_ONLY) \
-	$(STL_CONTAINER)
+stl : $(STLs)
 
-img : \
-	img/z-butt-1u-family-photo.png \
-	img/z-butt-2u-family-photo.png \
-	img/z-butt-iso-enter-family-photo.png \
-	img/z-butt-big-ass-enter-family-photo.png \
-	img/z-butt-all-family-photo.png \
+jpg : $(JPGs)
 
 release : z-butt-openscad-stl.zip
+
 
 
 stl/%.stl : scad/%.scad scad/z-butt.scad
 	@mkdir -p stl
 	openscad -o /tmp/$*.stl $<
-ifneq (, $(shell if $(CONVERT_STL_MESHLAB); then which meshlabserver; fi;))
+ifneq (, $(shell which meshlabserver))
+#	If Meshlab is available, convert STLs to binary.
 	meshlabserver -i /tmp/$*.stl -o $@
 else
 	mv /tmp/$*.stl $@
 endif
 
-
-img/z-butt-1u-family-photo.png : CROP := -crop 870x620+0+160
-img/z-butt-2u-family-photo.png : CROP := -crop 870x620+0+160
-img/z-butt-iso-enter-family-photo.png : CROP := -crop 870x620+0+160
-img/z-butt-big-ass-enter-family-photo.png : CROP := -crop 870x620+0+160
-img/z-butt-all-family-photo.png : CROP := -crop 870x780+0+60
-img/%.png : scad/%.scad scad/z-butt.scad
-	openscad \
-	  --imgsize=3480,3480 \
-	  -o /tmp/$*.png $<
-ifneq (, $(shell which convert))
-	convert -resize 25% $(CROP) /tmp/$*.png $@
-else
-	mv /tmp/$*.png $@
-endif
-
-
-scad/z-butt-%u-mx-master-base.scad :
-	echo -e "include <z-butt.scad>\n\n\nmx_master_base(xu=$*);\n" > $@
-
-scad/z-butt-%u-mx-sculpt-base.scad :
-	echo -e "include <z-butt.scad>\n\n\nmx_sculpt_base(xu=$*);\n" > $@
-
-scad/z-butt-%u-mx-stem-cavity.scad :
-	echo -e "include <z-butt.scad>\n\n\nrotate([180, 0, 0]){mx_stem_cavity(xu=$*);}\n" > $@
-
-scad/z-butt-%u-mx-sprues-only.scad :
-	echo -e "include <z-butt.scad>\n\nmx_sprues_only(xu=$*);\n" > $@
-
-scad/z-butt-%u-al-master-base.scad :
-	echo -e "include <z-butt.scad>\n\n\nal_master_base(xu=$*);\n" > $@
-
-scad/z-butt-%u-al-sculpt-base.scad :
-	echo -e "include <z-butt.scad>\n\n\nal_sculpt_base(xu=$*);\n" > $@
-
-scad/z-butt-%u-al-stem-cavity.scad :
-	echo -e "include <z-butt.scad>\n\n\nrotate([180, 0, 0]){al_stem_cavity(xu=$*);}\n" > $@
-
-scad/z-butt-%u-al-sprues-only.scad :
-	echo -e "include <z-butt.scad>\n\nal_sprues_only(xu=$*);\n" > $@
-
-scad/z-butt-%u-container.scad :
-	echo -e "include <z-butt.scad>\n\n\nrotate([0, 0, 0]){container(xu=$*);}\n" > $@
-
-
-scad/z-butt-%u-family-photo.scad :
-	echo -e "include <z-butt.scad>\n\n\nfamily_photo([$*]);\n" > $@
-
-scad/z-butt-%-enter-family-photo.scad :
-	echo -e "include <z-butt.scad>\n\n\nfamily_photo(name=\"$*-enter\");\n" > $@
-
-scad/z-butt-all-family-photo.scad :
-	echo -e "include <z-butt.scad>\n\n\nfamily_photo([$(SIZES_COMMA)]);\n" > $@
 
 
 z-butt-openscad-stl.zip : stl/z-butt-*.stl

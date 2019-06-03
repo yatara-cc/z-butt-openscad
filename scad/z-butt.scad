@@ -84,6 +84,17 @@ overlap = 0.1;  // Offset to avoid coplanar faces in Boolean operations.
 // Functions
 
 
+function calc_xu (xu=1, name="") = 
+     (name == "iso-enter") ? 1.5 :
+     (name == "big-ass-enter") ? 2.25 :
+     xu;
+
+function calc_yu (yu=1, name="") = 
+     (name == "iso-enter") ? 2 :
+     (name == "big-ass-enter") ? 2 :
+     yu;
+
+
 function calc_plate_size (u=1) = unit_lego_stud * round((plate_size + unit_u * (u - 1)) / unit_lego_stud);
 
 
@@ -579,16 +590,18 @@ module al_stem () {
 
 
 module master_base (xu=1, yu=1, name="") {
+     nxu = calc_xu(xu, name);
+     nyu = calc_yu(yu, name);
      union () {
           difference() {
-               bottom_plate(xu=xu, yu=yu);
-               registration_cube(xu=xu, yu=yu, offset=regst_offset);
+               bottom_plate(xu=nxu, yu=nyu);
+               registration_cube(xu=nxu, yu=nyu, offset=regst_offset);
           }
           difference() {
-               base(xu=xu, yu=yu, name=name);
-               indent(xu=xu, yu=yu, name=name);
+               base(xu=nxu, yu=nyu, name=name);
+               indent(xu=nxu, yu=nyu, name=name);
           }
-          sprues_base(regst_height + overlap, xu=xu, yu=yu, name=name, $fn=48);
+          sprues_base(regst_height + overlap, xu=nxu, yu=nyu, name=name, $fn=48);
      }
 }
 
@@ -625,10 +638,12 @@ module al_master_base (xu=1, yu=1, name="") {
 
 
 module sculpt_base (xu=1, yu=1, name="") {
+     nxu = calc_xu(xu, name);
+     nyu = calc_yu(yu, name);
      union () {
           difference() {
-               bottom_plate(xu=xu, yu=yu);
-               registration_cube(xu=xu, yu=yu, offset=regst_offset);
+               bottom_plate(xu=nxu, yu=nyu);
+               registration_cube(xu=nxu, yu=nyu, offset=regst_offset);
           }
           sprues_base(regst_height + overlap, xu=xu, yu=yu, name=name, $fn=48);
           base(xu=xu, yu=yu, name=name);
@@ -711,7 +726,7 @@ module stem_cavity (xu=1, yu=1, name="") {
                     }
                }
           }
-     } {
+     } else {
           difference() {
                stem_cavity_positive(xu=xu, yu=yu);
                stem_cavity_negative(xu=xu, yu=yu);
@@ -837,26 +852,30 @@ module sprues_only_base (xu=1, yu=1, name="") {
 
 
 module mx_sprues_only (xu=1, yu=1, name="") {
+     nxu = calc_xu(xu, name);
+     nyu = calc_yu(yu, name);
      color("SkyBlue") {
           union () {
-               sprues_base(sprue_height, xu=xu, yu=yu, name=name, $fn=48);
+               sprues_base(sprue_height, xu=nxu, yu=nyu, name=name, $fn=48);
                stem_copy(xu=xu, yu=yu, name=name) {
                     mx_sprues_stem(sprue_height, $fn=48);
                }
-               sprues_only_base(xu=xu, yu=yu, name=name);
+               sprues_only_base(xu=nxu, yu=nyu, name=name);
           }
      }
 }
 
 
 module al_sprues_only (xu=1, yu=1, name="") {
+     nxu = calc_xu(xu, name);
+     nyu = calc_yu(yu, name);
      color("SkyBlue") {
           union () {
-               sprues_base(sprue_height, xu=xu, yu=yu, name=name, $fn=48);
+               sprues_base(sprue_height, xu=nxu, yu=nyu, name=name, $fn=48);
                stem_copy(xu=xu, yu=yu, name=name) {
                     al_sprues_stem(sprue_height, $fn=48);
                }
-               sprues_only_base(xu=xu, yu=yu, name=name);
+               sprues_only_base(xu=nxu, yu=nyu, name=name);
           }
      }
 }
