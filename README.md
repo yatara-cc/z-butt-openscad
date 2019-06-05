@@ -17,6 +17,8 @@ STL models are available for download in the [releases](https://github.com/yatar
 
 ![Z-Butt OpenSCAD 7u MX](img/z-butt-7u-mx.jpg)
 
+![Z-Butt OpenSCAD 1u Container](img/z-butt-1u-container.jpg)
+
 
 ## Compatibility
 

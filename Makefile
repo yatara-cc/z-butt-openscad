@@ -8,6 +8,9 @@ PARTs := master-base sculpt-base stem-cavity sprues-only
 STLs :=
 JPGs :=
 
+RENDER_SAMPLES := 9
+RENDER_PERCENTAGE := 100
+
 
 .PHONY : stl render
 .SECONDARY :
@@ -39,15 +42,26 @@ STLs := $(STLs) \
 endef
 
 
+define CONTAINER
+scad/z-butt-$(1)-container.scad :
+	echo -e "include <z-butt.scad>\n\n\ncontainer_auto($(2));\n" > $$@
+
+STLs := $(STLs) \
+	stl/z-butt-$(1)-container.stl
+endef
+
+
 $(foreach base,$(BASEs), \
 	$(foreach xu,$(XUs),$(eval $(call KEY,$(base),$(xu)u,xu=$(xu)))) \
 	$(foreach name,$(NAMEs),$(eval $(call KEY,$(base),$(name),name=\"$(name)\"))) \
 )
+$(foreach xu,$(XUs),$(eval $(call CONTAINER,$(xu)u,xu=$(xu))))
+$(foreach name,$(NAMEs),$(eval $(call CONTAINER,$(name),name=\"$(name)\")))
 
 
-define RENDER
+define RENDER_KEY
 
-img/z-butt-$(2)-$(1).jpg : \
+img/z-butt-$(2)-$(1).jpg : render/render.py \
 	stl/z-butt-$(2)-$(1)-master-base.stl \
 	stl/z-butt-$(2)-$(1)-sculpt-base.stl \
 	stl/z-butt-$(2)-$(1)-stem-cavity.stl \
@@ -55,17 +69,31 @@ img/z-butt-$(2)-$(1).jpg : \
 
 	@mkdir -p img
 	blender -b -P render/render.py -- --name=$(2)-$(1) --output=$$@ \
-	  --samples=9 --percentage=100 \
-	  --distance=$(3) --pan=$(4) --tilt=$(5) --aim-y=$(6)
+	  --samples=$(RENDER_SAMPLES) --percentage=$(RENDER_PERCENTAGE) \
+	  --distance=$(3) --pan=$(4) --tilt=$(5) --aim-z=$(6)
 
 JPGs := $(JPGs) img/z-butt-$(2)-$(1).jpg
 endef
 
-$(eval $(call RENDER,mx,1u,150,-20,-60,-5))
-$(eval $(call RENDER,al,1u,150,22,-60,-5))
-$(eval $(call RENDER,mx,2u,160,0,-60,-5))
-$(eval $(call RENDER,mx,7u,260,15,-60,-15))
-$(eval $(call RENDER,mx,iso-enter,200,-18,-75,-5))
+define RENDER_CONTAINER
+
+img/z-butt-$(1)-container.jpg : render/render.py \
+	stl/z-butt-$(1)-container.stl
+
+	@mkdir -p img
+	blender -b -P render/render.py -- --name=$(1) --output=$$@ \
+	  --samples=$(RENDER_SAMPLES) --percentage=$(RENDER_PERCENTAGE) \
+	  --distance=$(2) --pan=$(3) --tilt=$(4) --aim-z=$(5)
+
+JPGs := $(JPGs) img/z-butt-$(1)-container.jpg
+endef
+
+$(eval $(call RENDER_KEY,mx,1u,160,-20,-60,-15))
+$(eval $(call RENDER_KEY,al,1u,160,22,-60,-15))
+$(eval $(call RENDER_KEY,mx,2u,160,0,-60,-15))
+$(eval $(call RENDER_KEY,mx,7u,290,15,-60,-25))
+$(eval $(call RENDER_KEY,mx,iso-enter,210,-18,-70,-15))
+$(eval $(call RENDER_CONTAINER,1u,130,62.5,-32,5))
 
 
 

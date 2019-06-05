@@ -136,6 +136,49 @@ def arrange_objects(objects):
 
 
 
+def load_objects(name):
+    if name[-3:] in ("-mx", "-al"):
+        objects = [
+            load_obj(
+                f"stl/z-butt-{name}-sculpt-base.stl",
+                name="Sculpt Base",
+                color=(1.0, 0.5, 1.0)
+            ),
+            load_obj(
+                f"stl/z-butt-{name}-master-base.stl",
+                name="Master Base",
+                color=(1.0, 0.75, 0.5)
+            ),
+            load_obj(
+                f"stl/z-butt-{name}-sprues-only.stl",
+                name="Sprues Only",
+                color=(0.5, 0.75, 1.0)
+            ),
+            load_obj(
+                f"stl/z-butt-{name}-stem-cavity.stl",
+                name="Stem Cavity",
+                color=(0.75, 1.0, 0.5)
+            ),
+        ]
+
+        arrange_objects(objects)
+    else:
+        back = load_obj(
+            f"stl/z-butt-{name}-container.stl",
+            name="Sculpt Base",
+            color=(0.75, 0.125, 0.125)
+        )
+        back.location.y += SPACING
+
+        front = load_obj(
+            f"stl/z-butt-{name}-container.stl",
+            name="Sculpt Base",
+            color=(0.75, 0.125, 0.125)
+        )
+        front.location.y -= SPACING
+        front.rotation_euler.z = math.radians(180)
+
+
 def main():
     while sys.argv:
         v = sys.argv.pop(0)
@@ -167,9 +210,9 @@ def main():
         type=float, default=100,
         help="Camera distance.")
     parser.add_argument(
-        "--aim-y", "-Y",
+        "--aim-z", "-z",
         type=float, default=0,
-        help="Camera aim Y.")
+        help="Camera aim Z.")
 
     parser.add_argument(
         "--name", "-n",
@@ -208,39 +251,16 @@ def main():
     bpy.data.objects['Camera'].select = False
     bpy.ops.object.delete()
 
-    objects = [
-        load_obj(
-            f"stl/z-butt-{args.name}-sculpt-base.stl",
-            name="Sculpt Base",
-            color=(1.0, 0.5, 1.0)
-        ),
-        load_obj(
-            f"stl/z-butt-{args.name}-master-base.stl",
-            name="Master Base",
-            color=(1.0, 0.75, 0.5)
-        ),
-        load_obj(
-            f"stl/z-butt-{args.name}-sprues-only.stl",
-            name="Sprues Only",
-            color=(0.5, 0.75, 1.0)
-        ),
-        load_obj(
-            f"stl/z-butt-{args.name}-stem-cavity.stl",
-            name="Stem Cavity",
-            color=(0.75, 1.0, 0.5)
-        ),
-    ]
-
-    arrange_objects(objects)
+    load_objects(args.name);
 
     create_area_lamp(
-        name="Area Key", location=(250, 100, 300),
+        name="Area Key", location=(250, -100, 300),
         size=100, strength=3000, color=(1, 1, 1.2, 1))
     create_area_lamp(
-        name="Area Fill", location=(40, -200, 40),
+        name="Area Fill", location=(-200, 0, 80),
         size=200, strength=750, color=(1, 1, 1.1, 1))
     create_area_lamp(
-        name="Area Rim", location=(-400, 0, 20),
+        name="Area Rim", location=(-300, 300, 80),
         size=10, strength=2000, color=(1.1, 1.1, 1, 1))
 
     bpy.ops.mesh.primitive_plane_add(
@@ -260,11 +280,11 @@ def main():
 
     field_of_view = 50.0
 
-    tz = -math.sin(math.radians(args.tilt)) * args.distance
+    tz = args.aim_z - math.sin(math.radians(args.tilt)) * args.distance
     out = math.cos(math.radians(args.tilt)) * args.distance
 
     tx = math.sin(math.radians(args.pan)) * out
-    ty = args.aim_y - math.cos(math.radians(args.pan)) * out
+    ty = -math.cos(math.radians(args.pan)) * out
 
     scene.camera.data.angle = math.radians(field_of_view)
     scene.camera.rotation_mode = 'XYZ'

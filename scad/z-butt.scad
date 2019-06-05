@@ -73,7 +73,9 @@ container_overlap = 2;
 container_height = 28;  // Internal height
 container_bevel = 1;
 container_inset = 0;  // XY Gap between contents and internal container walls.
-
+container_clips = true;
+container_clip_extension = 3;
+container_clip_inset = 0.2;  // Gap between touching clip faces.
 
 // Internal Parameters
 
@@ -971,9 +973,76 @@ module container (xu=1, yu=1, xn=2) {
           }
      }
 
+     module clip(width) {
+          ey = container_clip_extension;
+          width_overlap = 2;
+          touching_height = 2;
+          bevel = 0.5;
+
+          thin = 0.001;
+
+          da = container_clip_inset + bevel * 2;
+          angle = atan2(width_overlap, ey - bevel * 3);
+          apart = da / cos(angle);
+
+          xo = width + width_overlap - thin - apart;
+          xi = width - width_overlap - thin - apart;
+          xm = 1;
+          sy = sqrt(pow(ey, 2) + pow((xo - xm) / 2, 2));
+          yo = (ey) / 2 - bevel;
+
+          minkowski() {
+               sphere(r=bevel, $fn=32);
+               hull() {
+                    translate([0, yo, 0]) {
+                         scale([xo, thin, touching_height]) {
+                              translate([-0.5, -1, -0.5]) {
+                                   cube([1, 1, 1]);
+                              }
+                         }
+                    }
+                    translate([0, -ey / 2, 0]) {
+                         scale([xm, thin, touching_height / 2 + sy]) {
+                              translate([-0.5, 0, -1]) {
+                                   cube([1, 1, 1]);
+                              }
+                         }
+                    }
+                    translate([0, -ey / 2, 0]) {
+                         scale([xi, thin, touching_height]) {
+                              translate([-0.5, 0, -0.5]) {
+                                   cube([1, 1, 1]);
+                              }
+                         }
+                    }
+               }
+          }
+     }
+
+     module clips(total_container_width) {
+          width = 8;
+          dy = plate_y / 2 + container_thickness + container_clip_extension / 2;
+          n = 2 * round((total_container_width / width - 2) / 4);
+          translate([0, 0, 8]) {
+               translate_copy([0, 0, 20]) {
+                    for (x = [0 : n - 1]) {
+                         translate([width * (x + 0.25 - n / 2) * 2, dy, 0]) {
+                              clip(width);
+                         }
+                    }
+               }
+          }
+     }
+
+
      color("khaki") {
           difference () {
-               positive();
+               union() {
+                    positive();
+                    if (container_clips) {
+                         clips(dx * xn + container_thickness);
+                    }
+               }
                translate([dx * xn * -0.5, 0, 0]) {
                     translate_copy([dx, 0, 0], xn) {
                          negative_internal();
@@ -983,6 +1052,17 @@ module container (xu=1, yu=1, xn=2) {
                     }
                }
           }
+     }
+}
+
+
+module container_auto (xu=1, yu=1, name="") {
+     if (name == "iso-enter") {
+          container(xu=1.5, yu=2, xn=2);
+     } else if (name == "big-ass-enter") {
+          container(xu=2.25, yu=2, xn=1);
+     } else {
+          container(xu=xu, yu=yu, xn=(xu < 2 ? 2 : 1));
      }
 }
 
@@ -1038,7 +1118,7 @@ module family_photo (xu_list, name="") {
           }
      
           translate([0, cy * 4, cz]) {
-               container(xu=xu, yu=yu, xn=(xu < 2 ? 2 : 1));
+               container_auto(xu=xu, yu=yu, name=name);
           }
      }
 
