@@ -2,6 +2,8 @@ SHELL := /bin/bash
 
 
 XUs := 1 1.25 1.5 1.75 2 2.25 2.75 3 4 6 6.25 7
+YUs := 1 2
+XSs := 0 1 2 4 8
 NAMEs := iso-enter big-ass-enter
 BASEs := mx al
 PARTs := master-base sculpt-base stem-cavity sprues-only
@@ -43,11 +45,11 @@ endef
 
 
 define CONTAINER
-scad/z-butt-$(1)-container.scad :
-	echo -e "include <z-butt.scad>\n\n\ncontainer_auto($(2));\n" > $$@
+scad/z-butt-$(1)u-$(2)s-container.scad :
+	echo -e "include <z-butt.scad>\n\n\ncontainer(yu=$(1), xs=$(2));\n" > $$@
 
 STLs := $(STLs) \
-	stl/z-butt-$(1)-container.stl
+	stl/z-butt-$(1)u-$(2)s-container.stl
 endef
 
 
@@ -55,8 +57,7 @@ $(foreach base,$(BASEs), \
 	$(foreach xu,$(XUs),$(eval $(call KEY,$(base),$(xu)u,xu=$(xu)))) \
 	$(foreach name,$(NAMEs),$(eval $(call KEY,$(base),$(name),name=\"$(name)\"))) \
 )
-$(foreach xu,$(XUs),$(eval $(call CONTAINER,$(xu)u,xu=$(xu))))
-$(foreach name,$(NAMEs),$(eval $(call CONTAINER,$(name),name=\"$(name)\")))
+$(foreach yu,$(YUs),$(foreach xs,$(XSs),$(eval $(call CONTAINER,$(yu),$(xs)))))
 
 
 define RENDER_KEY
@@ -78,7 +79,8 @@ endef
 define RENDER_CONTAINER
 
 img/z-butt-$(1)-container.jpg : render/render.py \
-	stl/z-butt-$(1)-container.stl
+	stl/z-butt-$(1)-0s-container.stl \
+	stl/z-butt-$(1)-1s-container.stl
 
 	@mkdir -p img
 	blender -b -P render/render.py -- --name=$(1) --output=$$@ \
@@ -93,7 +95,7 @@ $(eval $(call RENDER_KEY,al,1u,160,22,-60,-15))
 $(eval $(call RENDER_KEY,mx,2u,160,0,-60,-15))
 $(eval $(call RENDER_KEY,mx,7u,290,15,-60,-25))
 $(eval $(call RENDER_KEY,mx,iso-enter,210,-18,-70,-15))
-$(eval $(call RENDER_CONTAINER,1u,130,62.5,-32,5))
+$(eval $(call RENDER_CONTAINER,1u,140,25,-32,5))
 
 
 
@@ -111,6 +113,14 @@ stl : $(STLs)
 jpg : $(JPGs)
 
 release : z-butt-openscad-stl.zip
+	git tag -f stable;
+	git push -f
+	git push -f --tags
+
+rebuild :
+	$(MAKE) clean
+	$(MAKE) stl -j 8
+	$(MAKE) jpg
 
 
 
@@ -126,5 +136,5 @@ endif
 
 
 
-z-butt-openscad-stl.zip : stl/z-butt-*.stl
-	zip -r $@ stl/z-butt-[1-9]*.stl
+z-butt-openscad-stl.zip : $(STLs)
+	zip -r $@ $(STLs)

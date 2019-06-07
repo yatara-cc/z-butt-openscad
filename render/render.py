@@ -6,6 +6,7 @@ import argparse
 import bpy
 
 SPACING = 10
+LEGO_STUD = 8
 
 
 
@@ -164,19 +165,25 @@ def load_objects(name):
         arrange_objects(objects)
     else:
         back = load_obj(
-            f"stl/z-butt-{name}-container.stl",
+            f"stl/z-butt-{name}-0s-container.stl",
             name="Sculpt Base",
             color=(0.75, 0.125, 0.125)
         )
-        back.location.y += SPACING
+        back.location.x -= (SPACING + LEGO_STUD)
+
+        mid = load_obj(
+            f"stl/z-butt-{name}-1s-container.stl",
+            name="Sculpt Base",
+            color=(0.75, 0.125, 0.125)
+        )
 
         front = load_obj(
-            f"stl/z-butt-{name}-container.stl",
+            f"stl/z-butt-{name}-0s-container.stl",
             name="Sculpt Base",
             color=(0.75, 0.125, 0.125)
         )
-        front.location.y -= SPACING
         front.rotation_euler.z = math.radians(180)
+        front.location.x += (SPACING + LEGO_STUD)
 
 
 def main():
