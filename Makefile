@@ -6,7 +6,6 @@ YUs := 1 2
 XSs := 0 1 2 4 8
 NAMEs := iso-enter big-ass-enter
 BASEs := mx al
-PARTs := master-base sculpt-base stem-cavity sprues-only
 STLs :=
 JPGs :=
 
@@ -29,8 +28,11 @@ scad/z-butt-$(2)-$(1)-master-base.scad :
 scad/z-butt-$(2)-$(1)-sculpt-base.scad :
 	echo -e "include <z-butt.scad>\n\n\n$(1)_sculpt_base($(3));\n" > $$@
 
-scad/z-butt-$(2)-$(1)-stem-cavity.scad :
+scad/z-butt-$(2)-$(1)-stem-cavity-sla.scad :
 	echo -e "include <z-butt.scad>\n\n\nrotate([0, 180, 0]){$(1)_stem_cavity($(3));}\n" > $$@
+
+scad/z-butt-$(2)-$(1)-stem-cavity-fdm.scad :
+	echo -e "include <z-butt.scad>\n\n\nrotate([0, 180, 0]){$(1)_stem_cavity($(3), fdm=true);}\n" > $$@
 
 scad/z-butt-$(2)-$(1)-sprues-only.scad :
 	echo -e "include <z-butt.scad>\n\n\n$(1)_sprues_only($(3));\n" > $$@
@@ -39,7 +41,8 @@ scad/z-butt-$(2)-$(1)-sprues-only.scad :
 STLs := $(STLs) \
 	stl/z-butt-$(2)-$(1)-master-base.stl \
 	stl/z-butt-$(2)-$(1)-sculpt-base.stl \
-	stl/z-butt-$(2)-$(1)-stem-cavity.stl \
+	stl/z-butt-$(2)-$(1)-stem-cavity-fdm.stl \
+	stl/z-butt-$(2)-$(1)-stem-cavity-sla.stl \
 	stl/z-butt-$(2)-$(1)-sprues-only.stl
 endef
 
@@ -65,7 +68,7 @@ define RENDER_KEY
 img/z-butt-$(2)-$(1).jpg : render/render.py \
 	stl/z-butt-$(2)-$(1)-master-base.stl \
 	stl/z-butt-$(2)-$(1)-sculpt-base.stl \
-	stl/z-butt-$(2)-$(1)-stem-cavity.stl \
+	stl/z-butt-$(2)-$(1)-stem-cavity-sla.stl \
 	stl/z-butt-$(2)-$(1)-sprues-only.stl
 
 	@mkdir -p img
@@ -119,8 +122,8 @@ release : z-butt-openscad-stl.zip
 
 rebuild :
 	$(MAKE) clean
-	$(MAKE) stl -j 8
 	$(MAKE) jpg
+	$(MAKE) stl -j 8
 
 
 

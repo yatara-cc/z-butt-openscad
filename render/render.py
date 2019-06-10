@@ -156,7 +156,7 @@ def load_objects(name):
                 color=(0.5, 0.75, 1.0)
             ),
             load_obj(
-                f"stl/z-butt-{name}-stem-cavity.stl",
+                f"stl/z-butt-{name}-stem-cavity-sla.stl",
                 name="Stem Cavity",
                 color=(0.75, 1.0, 0.5)
             ),

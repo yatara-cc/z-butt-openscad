@@ -82,11 +82,6 @@ mx_stem_cavity(name="iso-enter");
 -   MX stems for stabilizers have been included on larger spacebars, though these are tentative and it is advised to check them before printing. Stem placement can be edited in the functions `switches_xu` and `stabilizers_xu`.
 
 
-### Maker's Mark
-
-A Maker's Mark can be added by creating a 2-D polygon in `scad/makers-mark.scad`. See the file for an example.
-
-
 ### Building
 
 For building on Linux, OpenSCAD and GNU Make should be installed.
