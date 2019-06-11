@@ -144,6 +144,14 @@ module rotate_z_copy (angle) {
 }
 
 
+module mirror_copy (v) {
+     children();
+     mirror(v) {
+          children();
+     }
+}
+
+
 module translate_copy (v, n=2) {
      for (i = [0 : n - 1]) {
           translate([v[0] * i, v[1] * i, v[2] * i]) {
@@ -170,6 +178,41 @@ module chamfered_cube (sx, sy, sz, ch_xy, ch_z) {
      hull() {
           centered_cube([sx, sy, sz - ch_z]);
           centered_cube([sx - 2 * ch_xy, sy - 2 * ch_xy, sz]);
+     }
+}
+
+
+
+module fdm_corners (sx, sy, sz, fz) {
+     // Corner pillars for a bottom-chamfered cube
+     // with overhangs not exceeding 45 degrees.
+     // 
+     // `fz` height of non-chamfered edge in Z.
+
+     xy = fz;
+     dz = sz - fz;
+     dxy = dz / 2;
+
+     mirror_copy([1, 0, 0]) {
+          mirror_copy([0, 1, 0]) {
+               hull() {
+                    translate([-sx / 2, -sy / 2, 0]) {
+                         scale([xy, xy, fz]) {
+                              cube(1);
+                         }
+                    }
+                    translate([-sx / 2 + dz, -sy / 2 + dz, sz - fz]) {
+                         scale([xy, xy, fz]) {
+                              cube(1);
+                         }
+                    }
+                    translate([-sx / 2 + dxy, -sy / 2 + dxy, sz - fz]) {
+                         scale([xy, xy, fz]) {
+                              cube(1);
+                         }
+                    }
+               }
+          }
      }
 }
 
@@ -219,19 +262,22 @@ module stem_copy (xu=1, yu=1, name="", switches=true, stabilizers=true) {
 
 
 module top_plate (xu=1, yu=1, fdm=false) {
+     sx = calc_plate_size(xu) - plate_inset;
+     sy = calc_plate_size(yu) - plate_inset;
+     fz = plate_height - plate_chamfer;
      if (fdm) {
-          chamfered_cube (
-               calc_plate_size(xu) - plate_inset,
-               calc_plate_size(yu) - plate_inset,
-               key_cavity_height + plate_height - plate_chamfer,
+          chamfered_cube(
+               sx,
+               sy,
+               key_cavity_height + fz,
                key_cavity_height, key_cavity_height);
+          fdm_corners(sx, sy, key_cavity_height + fz, fz);
      } else {
-          chamfered_cube (
-               calc_plate_size(xu) - plate_inset,
-               calc_plate_size(yu) - plate_inset,
+          chamfered_cube(
+               sx, sy,
                plate_height,
                plate_chamfer, plate_chamfer);
-          translate([0, 0, plate_height - plate_chamfer]) {
+          translate([0, 0, fz]) {
                bevelled_key (
                     calc_base_size(xu),
                     calc_base_size(yu),
