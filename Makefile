@@ -5,15 +5,16 @@ XUs := 1 1.25 1.5 1.75 2 2.25 2.75 3 4 6 6.25 7
 YUs := 1 2
 XSs := 0 1 2 4 8
 NAMEs := iso-enter big-ass-enter
-BASEs := mx al
+BASEs := mx al lp
 STLs :=
 JPGs :=
+ZIPs :=
 
 RENDER_SAMPLES := 9
 RENDER_PERCENTAGE := 100
 
 
-.PHONY : stl render
+.PHONY : stl render release
 .SECONDARY :
 
 
@@ -64,7 +65,6 @@ $(foreach yu,$(YUs),$(foreach xs,$(XSs),$(eval $(call CONTAINER,$(yu),$(xs)))))
 
 
 define RENDER_KEY
-
 img/z-butt-$(2)-$(1).jpg : render/render.py \
 	stl/z-butt-$(2)-$(1)-master-base.stl \
 	stl/z-butt-$(2)-$(1)-sculpt-base.stl \
@@ -80,7 +80,6 @@ JPGs := $(JPGs) img/z-butt-$(2)-$(1).jpg
 endef
 
 define RENDER_CONTAINER
-
 img/z-butt-$(1)-container.jpg : render/render.py \
 	stl/z-butt-$(1)-0s-container.stl \
 	stl/z-butt-$(1)-1s-container.stl
@@ -93,29 +92,45 @@ img/z-butt-$(1)-container.jpg : render/render.py \
 JPGs := $(JPGs) img/z-butt-$(1)-container.jpg
 endef
 
+define ZIP
+release/z-butt-openscad-$(1).zip : $(STLs)
+	@mkdir -p release
+	zip -r $$@ stl/*$(1)*.stl
+
+ZIPs := $(ZIPs) release/z-butt-openscad-$(1).zip
+endef
+
+
 $(eval $(call RENDER_KEY,mx,1u,160,-20,-60,-15))
 $(eval $(call RENDER_KEY,al,1u,160,22,-60,-15))
+$(eval $(call RENDER_KEY,lp,1u,160,-30,-65,-15))
 $(eval $(call RENDER_KEY,mx,2u,160,0,-60,-15))
 $(eval $(call RENDER_KEY,mx,7u,290,15,-60,-25))
 $(eval $(call RENDER_KEY,mx,iso-enter,210,-18,-70,-15))
 $(eval $(call RENDER_CONTAINER,1u,140,25,-32,5))
 
+$(eval $(call ZIP,mx))
+$(eval $(call ZIP,al))
+$(eval $(call ZIP,lp))
+$(eval $(call ZIP,container))
 
 
 all : $(JPGs) $(STLs)
 
 clean :
 	rm -rf \
-	  stl \
-	  img \
-	  scad/z-butt-*.scad \
-	  z-butt-openscad-stl.zip
+	  stl img release \
+	  scad/z-butt-*.scad
+
 
 stl : $(STLs)
 
 jpg : $(JPGs)
 
-release : z-butt-openscad-stl.zip
+zip : $(ZIPs)
+
+
+release :
 	git tag -f stable;
 	git push -f
 	git push -f --tags
@@ -129,7 +144,8 @@ rebuild :
 
 stl/%.stl : scad/%.scad scad/z-butt.scad
 	@mkdir -p stl
-	openscad -o /tmp/$*.stl $<
+	openscad -o /tmp/$*.stl $< 2> >(tee /tmp/$*.stl.stderr.log >&2)
+	[[ ! $$(grep "WARNING" /tmp/$*.stl.stderr.log) ]]
 ifneq (, $(shell which meshlabserver))
 #	If Meshlab is available, convert STLs to binary.
 	meshlabserver -i /tmp/$*.stl -o $@
@@ -139,5 +155,3 @@ endif
 
 
 
-z-butt-openscad-stl.zip : $(STLs)
-	zip -r $@ $(STLs)
