@@ -147,8 +147,8 @@ function calc_key_sculpt_size (u=1) = key_sculpt_size + unit_u * (u - 1);
 
 // See `https://deskthority.net/wiki/Space_by_keyboard`.
 function stabilizers_xy (xu=1, yu=1, name="") = 
-     (name == "iso-enter") ? [[0.125, -0.5], [0.125, 0.5]] :
-     (name == "big-ass-enter") ? [[0.5, -0.5], [0.5, 0.5]] :
+     (name == "iso-enter") ? [[0.125, -0.625], [0.125, 0.625]] :
+     (name == "big-ass-enter") ? [[0.5, -0.625], [0.5, 0.625]] :
      (xu == 7) ? [[-3, 0], [3, 0]] :
      (xu == 6.25) ? [[-xu / 2 + 0.5, 0], [-xu / 2 + 5.75, 0]] :  // (Cherry)
      (xu == 6) ? [[-2.5, 0], [2.5, 0]] :  // (Cherry)
@@ -160,7 +160,7 @@ function stabilizers_xy (xu=1, yu=1, name="") =
 
 // See `https://deskthority.net/wiki/Space_by_keyboard`.
 function switches_xy (xu=1, yu=1, name="") = 
-     (name == "iso-enter") ? [[0.125, 0]] :
+     (name == "iso-enter") ? [[0.125, 0]] :p
      (name == "big-ass-enter") ? [[0.5, 0], [-0.625, -0.5]] :
      (xu == 7) ? [[0, 0]] :
      (xu == 6.25) ? [[-xu / 2 + 3.75, 0]] :  // (Cherry)
@@ -209,7 +209,7 @@ module chamfered_cube (sx, sy, sz, ch_xy, ch_z) {
      //
      // `ch_xy` = XY chamfer indent
      // `ch_z` = Z chamfer indent
-     
+
      hull() {
           centered_cube([sx, sy, sz - ch_z]);
           centered_cube([sx - 2 * ch_xy, sy - 2 * ch_xy, sz]);
@@ -278,6 +278,18 @@ module bevel_corner_square (sx, sy, r, n) {
 // Z-Butt Components
 
 
+module bevelled_key (sx, sy, sz, ch_xy, bevel) {
+     translate([0, 0, -overlap]) {
+          minkowski() {
+               chamfered_cube(sx, sy, sz + overlap, ch_xy, sz);
+               scale([1, 1, 0]) {
+                    sphere(bevel);
+               }
+          }
+     }
+}
+
+
 module stem_copy (xu=1, yu=1, name="", switches=true, stabilizers=true) {
      if (switches) {
           for (xy = switches_xy(xu=xu, yu=yu, name=name)) {
@@ -315,7 +327,7 @@ module top_plate (key, xu=1, yu=1, fdm=false) {
                plate_height,
                plate_chamfer, plate_chamfer);
           translate([0, 0, fz]) {
-               bevelled_key (
+               bevelled_key(
                     calc_base_size(attr(key, "base_sx"), xu),
                     calc_base_size(attr(key, "base_sy"), yu),
                     attr(key, "cavity_sz"),
@@ -408,18 +420,6 @@ module indent (key, xu, yu, name="") {
           translate([0, 0, overlap]) {
                rotate([180, 0, 0]) {
                     chamfered_cube(sx, sy, indent_depth + overlap, indent_depth, indent_depth);
-               }
-          }
-     }
-}
-
-
-module bevelled_key (sx, sy, sz, ch_xy, bevel) {
-     translate([0, 0, -overlap]) {
-          minkowski() {
-               chamfered_cube(sx, sy, sz + overlap, ch_xy, sz);
-               scale([1, 1, 0]) {
-                    sphere(bevel);
                }
           }
      }
@@ -601,7 +601,12 @@ module sprues_base (key, height, xu=1, yu=1, name="") {
 
 
 module mx_sprues_stem (height) {
-     d = (mx_diameter_pos - sprue_diameter_stem) / 2;     
+     d = ((
+          mx_stem_bevel ?
+          mx_stem_bevel * 2 + sqrt(2) * (mx_diameter_pos - 2 * mx_stem_bevel):
+          (mx_diameter_pos)
+          ) - sprue_diameter_stem) / 2;
+
      for (i = [0 : 3]) {
           rotate([0, 0, 45 + 90 * i]) {
                translate([-d, 0, -height]) {
