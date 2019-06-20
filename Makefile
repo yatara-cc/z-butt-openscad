@@ -95,7 +95,7 @@ endef
 define ZIP
 release/z-butt-openscad-$(1).zip : $(STLs)
 	@mkdir -p release
-	zip -r $$@ stl/*$(1)*.stl
+	zip -r $$@ stl/*-$(1)-*.stl stl/*-$(1).stl
 
 ZIPs := $(ZIPs) release/z-butt-openscad-$(1).zip
 endef

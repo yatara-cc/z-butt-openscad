@@ -21,7 +21,7 @@ regst_offset = 0.1;  // Gap between positive and negative models.
 indent_depth = 1;
 
 sprue_diameter_base = 3.1;
-sprue_diameter_tip = 1.5;
+sprue_diameter_tip = 2.0;
 sprue_diameter_stem = 1.4;
 sprue_height = 12;
 sprue_height_tip = 2;
