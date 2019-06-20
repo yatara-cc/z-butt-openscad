@@ -154,13 +154,13 @@ function stabilizers_xy (xu=1, yu=1, name="") =
      (xu == 6) ? [[-2.5, 0], [2.5, 0]] :  // (Cherry)
      (xu == 4) ? [[-1.5, 0], [1.5, 0]] :
      (xu == 3) ? [[-1, 0], [1, 0]] :
-     (xu >= 2) ? [[-0.5, 0], [0.5, 0]] :
+     (xu >= 2) ? [[-0.625, 0], [0.625, 0]] :
      [];
 
 
 // See `https://deskthority.net/wiki/Space_by_keyboard`.
 function switches_xy (xu=1, yu=1, name="") = 
-     (name == "iso-enter") ? [[0.125, 0]] :p
+     (name == "iso-enter") ? [[0.125, 0]] :
      (name == "big-ass-enter") ? [[0.5, 0], [-0.625, -0.5]] :
      (xu == 7) ? [[0, 0]] :
      (xu == 6.25) ? [[-xu / 2 + 3.75, 0]] :  // (Cherry)
