@@ -13,6 +13,8 @@ STL models are available for download in the [releases](https://github.com/yatar
 
 ![Z-Butt OpenSCAD 1u Alps](img/z-butt-1u-al.jpg)
 
+![Z-Butt OpenSCAD 1u Topre](img/z-butt-1u-tp.jpg)
+
 ![Z-Butt OpenSCAD 1u Kailh Low-Profile](img/z-butt-1u-lp.jpg)
 
 ![Z-Butt OpenSCAD ISO Enter](img/z-butt-iso-enter-mx.jpg)
@@ -24,7 +26,7 @@ STL models are available for download in the [releases](https://github.com/yatar
 
 ## Compatibility
 
--   MX, Alps or Kailh Low-Profile stems for switches and stabilizers
+-   MX, Alps, Topre or Kailh Low-Profile stems for switches and stabilizers
 -   Key sizes of 1u, 1.25u, 1.5u, 1.75u, 2u, 2.25u, 2.75u, 3u, 4u, 6u, 6.25u, and 7u
 -   ISO enter and big-ass enter
 
@@ -37,10 +39,10 @@ STL models are available for download in the [releases](https://github.com/yatar
 ### Modules
 
 
--   `(mx/al/lp)_master_base` Base for casting a silicone mould of an existing keycap.
--   `(mx/al/lp)_sculpt_base` Base for sculpting a custom-shaped keycap
--   `(mx/al/lp)_stem_cavity` Stem cavity base (may need to be inverted for printing).
--   `(mx/al/lp)_sprues_only` Sprues with a frame for placing inverted on top of an existing blank key when casting a cavity mold.
+-   `(mx/al/tp/lp)_master_base` Base for casting a silicone mould of an existing keycap.
+-   `(mx/al/tp/lp)_sculpt_base` Base for sculpting a custom-shaped keycap
+-   `(mx/al/tp/lp)_stem_cavity` Stem cavity base (may need to be inverted for printing).
+-   `(mx/al/tp/lp)_sprues_only` Sprues with a frame for placing inverted on top of an existing blank key when casting a cavity mold.
 -   `container` A container for casting silicone molds
 
 
@@ -48,6 +50,7 @@ STL models are available for download in the [releases](https://github.com/yatar
 
 -   `mx` module prefix is for Cherry MX stems
 -   `al` module prefix is for Alps stems
+-   `tp` module prefix is for Topre stems
 -   `lp` module prefix is for Kailh Low-Profile stems
 -   `xu`: number of key units in X (1 unit is 19.05mm or 0.75 inches).
 -   `yu`: Number of key units in Y

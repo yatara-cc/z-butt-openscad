@@ -138,7 +138,7 @@ def arrange_objects(objects):
 
 
 def load_objects(name):
-    if name[-3:] in ("-mx", "-al", "-lp"):
+    if name[-3:] in ("-mx", "-al", "-tp", "-lp"):
         objects = [
             load_obj(
                 f"stl/z-butt-{name}-sculpt-base.stl",

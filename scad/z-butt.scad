@@ -29,6 +29,11 @@ sprue_max_distance = 8;
 sprue_plate_height = 1;
 sprue_plate_width = 1.5;
 
+stem_clearance_z = 0.5;
+
+mx_tp_diameter_pos = 5.6;
+mx_tp_diameter_neg = 5.8;
+
 mx_crux_pos = [
      "horiz_length", 4.0,
      "horiz_thick", 1.3,
@@ -42,8 +47,6 @@ mx_crux_neg = [
      "vert_thick", 1.15
      ];
 mx_bevel = 0.25;
-mx_diameter_pos = 5.6;
-mx_diameter_neg = 5.8;
 mx_stem_bevel = false;
 mx_height_pos = 3;
 mx_height_neg = 5;
@@ -62,6 +65,11 @@ al_stem_l0 = 2.55;
 al_stem_w0 = 0.9;
 al_stem_ch = 0.5;
 
+tp_keycap_stem_ext = 1;
+tp_keycap_stem_slot_x_min = 1.15;
+tp_keycap_stem_inner_diameter = 3.75;
+tp_switch_stem_height = 4;
+     
 lp_depth = 1.6;
 lp_stem = [
      "distance_x", 5.75,
@@ -71,7 +79,7 @@ lp_stem = [
      "bevel", 0.25,
      ];
 
-mx_al_key = [
+mx_al_tp_key = [
      "base_sx", 18.5,
      "base_sy", 18.5,
      "cavity_sx", 14.925,
@@ -603,8 +611,8 @@ module sprues_base (key, height, xu=1, yu=1, name="") {
 module mx_sprues_stem (height) {
      d = ((
           mx_stem_bevel ?
-          mx_stem_bevel * 2 + sqrt(2) * (mx_diameter_pos - 2 * mx_stem_bevel):
-          (mx_diameter_pos)
+          mx_stem_bevel * 2 + sqrt(2) * (mx_tp_diameter_pos - 2 * mx_stem_bevel):
+          (mx_tp_diameter_pos)
           ) - sprue_diameter_stem) / 2;
 
      for (i = [0 : 3]) {
@@ -618,10 +626,21 @@ module mx_sprues_stem (height) {
 
 
 module al_sprues_stem (height) {
-     d = (mx_diameter_pos - sprue_diameter_stem) / 2;
+     d = (mx_tp_diameter_pos - sprue_diameter_stem) / 2;
      rotate_z_copy(180) {
           translate([2, 0, -height]) {
                cylinder(h=height + al_stem_ch, d=sprue_diameter_stem, $fn = 16);
+          }
+     }
+}
+
+
+module tp_sprues_stem (height, ext=0) {
+     d = (mx_tp_diameter_pos + tp_keycap_stem_inner_diameter) / 4;
+
+     rotate_z_copy(180) {
+          translate([d, 0, -height]) {
+               cylinder(h=height - ext + overlap, d=sprue_diameter_stem, $fn = 16);
           }
      }
 }
@@ -647,7 +666,7 @@ module mx_stem (height) {
           linear_extrude(height + overlap * 3) {
                if (mx_stem_bevel) {
                     minkowski() {
-                         scale(mx_diameter_pos - 2 * mx_stem_bevel) {
+                         scale(mx_tp_diameter_pos - 2 * mx_stem_bevel) {
                               translate([-0.5, -0.5]) {
                                    square(1);
                               }
@@ -655,7 +674,7 @@ module mx_stem (height) {
                          circle(r=mx_stem_bevel);
                     }
                } else {
-                    circle(d=mx_diameter_pos);
+                    circle(d=mx_tp_diameter_pos);
                }
           }
      }
@@ -735,6 +754,110 @@ module al_stem (height) {
      }
      
 }
+
+
+module tp_keycap_stem_pos (depth, ext=0) {
+     $fn = 32;
+     translate([0, 0, -ext]) {
+          linear_extrude(depth + ext + overlap) {
+               circle(d=mx_tp_diameter_pos, $fn=32);
+          }
+     }
+}
+
+
+
+module tp_keycap_stem_neg (depth, ext=0) {
+     slot_max = 2;
+     slot_depth = min(depth, 6.5 - ext);
+     bevel = 0.375;
+
+     sx1 = slot_max / 2 - bevel;
+     sx2 = tp_keycap_stem_slot_x_min / 2 + bevel;
+
+     rotate([90, 0, 0]) {
+          scale([1, 1, mx_tp_diameter_pos + 2 * overlap]) {
+               translate([0, 0, -0.5]) {
+                    linear_extrude(1) {
+                         difference() {
+                              minkowski() {
+                                   circle(bevel, $fn=8);
+                                   polygon(points=[
+                                                [-sx1, slot_depth - bevel],
+                                                [-sx1, -ext - overlap],
+                                                [sx1, -ext - overlap],
+                                                [sx1, slot_depth - bevel],
+                                                ]);
+                              }
+                              mirror_copy([1, 0]) {
+                                   minkowski() {
+                                        circle(bevel, $fn=8);
+                                        polygon(points=[
+                                                     [sx2, -ext + bevel],
+                                                     [sx2, 1.5],
+                                                     [sx2 * 2, 5],
+                                                     [sx2 * 2, -ext + bevel],
+                                                     ]);
+                                   }
+                              }
+                         }
+                    }
+               }
+          }
+     }
+
+
+     translate([0, 0, -ext - overlap]) {
+          cylinder(d=tp_keycap_stem_inner_diameter, h=(depth + ext + overlap), $fn=32);
+     }
+
+}
+
+
+module tp_switch_stem_pos (z_base) {
+     thickness = 1;
+
+     h = tp_switch_stem_height - z_base;
+     d = mx_tp_diameter_neg + 2 * thickness;
+
+     translate([0, 0, z_base]) {
+          cylinder(d=d, h=h, $fn=32);
+     }
+}
+
+
+
+module tp_switch_stem_neg (indent_z) {
+     depth = tp_keycap_stem_ext + stem_clearance_z;
+     guide_depth = 1;
+     guide_ext = 1.5;
+     bevel = 0.5;
+
+     h = tp_switch_stem_height + depth + overlap;
+     gx = tp_keycap_stem_slot_x_min - bevel * 2;
+     dy = mx_tp_diameter_neg / 2 - guide_ext;
+     dz = -depth;
+     gz = tp_switch_stem_height + depth - guide_depth;
+
+     difference() {
+          translate([0, 0, -depth]) {
+               cylinder(d=mx_tp_diameter_neg, h=h, $fn=32);
+          }
+          rotate_z_copy(180) {
+               minkowski() {
+                    sphere(r=bevel, $fn=8);
+                    translate([0, dy + bevel, dz - bevel]) {
+                         scale([gx, guide_ext, gz]) {
+                              translate([-0.5, 0, 0]) {
+                                   cube(1);
+                              }
+                         }
+                    }
+               }
+          }
+     }
+}
+
 
 
 module lp_copy () {
@@ -839,11 +962,11 @@ module master_base (key, xu=1, yu=1, name="") {
 module mx_master_base (xu=1, yu=1, name="") {
      color("LightSteelBlue") {
           union () {
-          master_base(mx_al_key, xu=xu, yu=yu, name=name);
-          translate([0, 0, -indent_depth - overlap]) {
-               stem_copy(xu=xu, yu=yu, name=name) {
-                    mx_cross(mx_crux_pos, mx_height_pos + indent_depth + overlap);
-               }
+               master_base(mx_al_tp_key, xu=xu, yu=yu, name=name);
+               translate([0, 0, -indent_depth - overlap]) {
+                    stem_copy(xu=xu, yu=yu, name=name) {
+                         mx_cross(mx_crux_pos, mx_height_pos + indent_depth + overlap);
+                    }
                }
           }
      }
@@ -853,7 +976,7 @@ module mx_master_base (xu=1, yu=1, name="") {
 module al_master_base (xu=1, yu=1, name="") {
      color("LightSteelBlue") {
           union () {
-               master_base(mx_al_key, xu=xu, yu=yu, name=name);
+               master_base(mx_al_tp_key, xu=xu, yu=yu, name=name);
                translate([0, 0, -indent_depth - overlap]) {
                     stem_copy(xu=xu, yu=yu, name=name, stabilizers=false) {
                          al_switch_stem(al_height + indent_depth + overlap);
@@ -861,6 +984,28 @@ module al_master_base (xu=1, yu=1, name="") {
                     stem_copy(xu=xu, yu=yu, name=name, switches=false) {
                          mx_cross(mx_crux_pos, mx_height_pos + indent_depth + overlap);
                     }
+               }
+          }
+     }
+}
+
+
+module tp_master_base (xu=1, yu=1, name="") {
+     color("LightSteelBlue") {
+          difference () {
+               union () {
+                    master_base(mx_al_tp_key, xu=xu, yu=yu, name=name);
+                    stem_copy(xu=xu, yu=yu, name=name, stabilizers=false) {
+                         tp_switch_stem_pos(-indent_depth - overlap);
+                    }
+                    translate([0, 0, -indent_depth - overlap]) {
+                         stem_copy(xu=xu, yu=yu, name=name, switches=false) {
+                              mx_cross(mx_crux_pos, mx_height_pos + indent_depth + overlap);
+                         }
+                    }
+               }
+               stem_copy(xu=xu, yu=yu, name=name, stabilizers=false) {
+                    tp_switch_stem_neg();
                }
           }
      }
@@ -905,13 +1050,13 @@ module sculpt_base (key, xu=1, yu=1, name="") {
 
 
 module mx_sculpt_base (xu=1, yu=1, name="") {
-     key = mx_al_key;
+     key = mx_al_tp_key;
      color("SteelBlue") {
           difference() {
                sculpt_base(key, xu=xu, yu=yu, name=name);
                translate([0, 0, -key_sculpt_inset_z]) {
                     stem_copy(xu=xu, yu=yu, name=name) {
-                         cylinder(h=attr(key, "cavity_sz") + overlap, d=mx_diameter_neg, $fn=48);
+                         cylinder(h=attr(key, "cavity_sz") + overlap, d=mx_tp_diameter_neg, $fn=48);
                     }
                }
           }
@@ -920,7 +1065,7 @@ module mx_sculpt_base (xu=1, yu=1, name="") {
 
 
 module al_sculpt_base (xu=1, yu=1, name="") {
-     key = mx_al_key;
+     key = mx_al_tp_key;
      color("SteelBlue") {
           difference() {
                sculpt_base(key, xu=xu, yu=yu, name=name);
@@ -931,7 +1076,24 @@ module al_sculpt_base (xu=1, yu=1, name="") {
                          }
                     }
                     stem_copy(xu=xu, yu=yu, name=name, switches=false) {
-                         cylinder(h=attr(key, "cavity_sz") + overlap, d=mx_diameter_neg, $fn=48);
+                         cylinder(h=attr(key, "cavity_sz") + overlap, d=mx_tp_diameter_neg, $fn=48);
+                    }
+               }
+          }
+     }
+}
+
+
+module tp_sculpt_base (xu=1, yu=1, name="") {
+     key = mx_al_tp_key;
+     ext = tp_keycap_stem_ext + stem_clearance_z;
+     h = attr(key, "cavity_sz") + ext;
+     color("SteelBlue") {
+          difference() {
+               sculpt_base(key, xu=xu, yu=yu, name=name);
+               translate([0, 0, -ext]) {
+                    stem_copy(xu=xu, yu=yu, name=name) {
+                         cylinder(h=h + overlap, d=mx_tp_diameter_neg, $fn=48);
                     }
                }
           }
@@ -951,7 +1113,7 @@ module lp_sculpt_base (xu=1, yu=1, name="") {
                          }
                     }
                     stem_copy(xu=xu, yu=yu, name=name, switches=false) {
-                         cylinder(h=attr(key, "cavity_sz") + overlap, d=mx_diameter_neg, $fn=48);
+                         cylinder(h=attr(key, "cavity_sz") + overlap, d=mx_tp_diameter_neg, $fn=48);
                     }
                }
           }
@@ -1010,7 +1172,7 @@ module stem_cavity (key, xu=1, yu=1, name="", fdm=false) {
 
 
 module mx_stem_cavity (xu=1, yu=1, name="", fdm=false) {
-     key = mx_al_key;
+     key = mx_al_tp_key;
      union () {
           color("CornflowerBlue") {
                union() {
@@ -1036,7 +1198,7 @@ module mx_stem_cavity (xu=1, yu=1, name="", fdm=false) {
 
 
 module al_stem_cavity (xu=1, yu=1, name="", fdm=false) {
-     key = mx_al_key;
+     key = mx_al_tp_key;
      color("CornflowerBlue") {
           difference() {
                union() {
@@ -1053,6 +1215,34 @@ module al_stem_cavity (xu=1, yu=1, name="", fdm=false) {
                }
                stem_copy(xu=xu, yu=yu, name=name, switches=false) {
                     mx_cross(mx_crux_neg, attr(key, "cavity_sz"));
+               }
+          }
+     }
+}
+
+
+module tp_stem_cavity (xu=1, yu=1, name="", fdm=false) {
+     key = mx_al_tp_key;
+     union () {
+          color("CornflowerBlue") {
+               union() {
+                    difference() {
+                         union() {
+                              stem_cavity(key, xu=xu, yu=yu, name=name, fdm=fdm);
+                              sprues_base(key, sprue_height, xu=xu, yu=yu, name=name, $fn=48);
+                              stem_copy(xu=xu, name=name, yu=yu, stabilizers=false) {
+                                   tp_keycap_stem_pos(
+                                        attr(key, "cavity_sz"), ext=tp_keycap_stem_ext);
+                              }
+                         }
+                         stem_copy(xu=xu, yu=yu, name=name, stabilizers=false) {
+                              tp_keycap_stem_neg(
+                                   attr(key, "cavity_sz"), ext=tp_keycap_stem_ext);
+                         }
+                    }
+                    stem_copy(xu=xu, yu=yu, name=name, stabilizers=false) {
+                         tp_sprues_stem(sprue_height, ext=tp_keycap_stem_ext);
+                    }
                }
           }
      }
@@ -1103,7 +1293,7 @@ module sprues_only_base (key, xu=1, yu=1, name="") {
                     }
                }
                stem_copy(xu=xu, yu=yu, name=name) {
-                    circle(d=mx_diameter_pos, $fn=48);
+                    circle(d=mx_tp_diameter_pos, $fn=48);
                }
                if (name != "" || yu > xu) {
                     rotate([0, 0, 90]) {
@@ -1126,7 +1316,7 @@ module sprues_only_base (key, xu=1, yu=1, name="") {
 
 
 module mx_sprues_only (xu=1, yu=1, name="") {
-     key = mx_al_key;
+     key = mx_al_tp_key;
      nxu = calc_xu(xu, name);
      nyu = calc_yu(yu, name);
      
@@ -1143,7 +1333,7 @@ module mx_sprues_only (xu=1, yu=1, name="") {
 
 
 module al_sprues_only (xu=1, yu=1, name="") {
-     key = mx_al_key;
+     key = mx_al_tp_key;
      nxu = calc_xu(xu, name);
      nyu = calc_yu(yu, name);
      
@@ -1152,6 +1342,23 @@ module al_sprues_only (xu=1, yu=1, name="") {
                sprues_base(key, sprue_height, xu=nxu, yu=nyu, name=name, $fn=48);
                stem_copy(xu=xu, yu=yu, name=name) {
                     al_sprues_stem(sprue_height, $fn=48);
+               }
+               sprues_only_base(key, xu=nxu, yu=nyu, name=name);
+          }
+     }
+}
+
+
+module tp_sprues_only (xu=1, yu=1, name="") {
+     key = mx_al_tp_key;
+     nxu = calc_xu(xu, name);
+     nyu = calc_yu(yu, name);
+     
+     color("SkyBlue") {
+          union() {
+               sprues_base(key, sprue_height, xu=nxu, yu=nyu, name=name, $fn=48);
+               stem_copy(xu=xu, yu=yu, name=name) {
+                    tp_sprues_stem(sprue_height, ext=tp_keycap_stem_ext);
                }
                sprues_only_base(key, xu=nxu, yu=nyu, name=name);
           }

@@ -5,7 +5,7 @@ XUs := 1 1.25 1.5 1.75 2 2.25 2.75 3 4 6 6.25 7
 YUs := 1 2
 XSs := 0 1 2 4 8
 NAMEs := iso-enter big-ass-enter
-BASEs := mx al lp
+BASEs := mx al tp lp
 STLs :=
 JPGs :=
 ZIPs :=
@@ -103,6 +103,7 @@ endef
 
 $(eval $(call RENDER_KEY,mx,1u,160,-20,-60,-15))
 $(eval $(call RENDER_KEY,al,1u,160,22,-60,-15))
+$(eval $(call RENDER_KEY,tp,1u,160,8,-60,-15))
 $(eval $(call RENDER_KEY,lp,1u,160,-30,-65,-15))
 $(eval $(call RENDER_KEY,mx,2u,160,0,-60,-15))
 $(eval $(call RENDER_KEY,mx,7u,290,15,-60,-25))
@@ -111,6 +112,7 @@ $(eval $(call RENDER_CONTAINER,1u,140,25,-32,5))
 
 $(eval $(call ZIP,mx))
 $(eval $(call ZIP,al))
+$(eval $(call ZIP,tp))
 $(eval $(call ZIP,lp))
 $(eval $(call ZIP,container))
 
