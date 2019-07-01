@@ -998,11 +998,6 @@ module tp_master_base (xu=1, yu=1, name="") {
                     stem_copy(xu=xu, yu=yu, name=name, stabilizers=false) {
                          tp_switch_stem_pos(-indent_depth - overlap);
                     }
-                    translate([0, 0, -indent_depth - overlap]) {
-                         stem_copy(xu=xu, yu=yu, name=name, switches=false) {
-                              mx_cross(mx_crux_pos, mx_height_pos + indent_depth + overlap);
-                         }
-                    }
                }
                stem_copy(xu=xu, yu=yu, name=name, stabilizers=false) {
                     tp_switch_stem_neg();
