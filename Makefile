@@ -95,7 +95,7 @@ endef
 define ZIP
 release/z-butt-openscad-$(1).zip : $(STLs)
 	@mkdir -p release
-	zip -r $$@ stl/*-$(1)-*.stl stl/*-$(1).stl
+	zip -r $$@ stl/*-$(1)-*.stl stl/*-$(1).stl docs/$(1).md
 
 ZIPs := $(ZIPs) release/z-butt-openscad-$(1).zip
 endef
@@ -143,17 +143,12 @@ rebuild :
 	$(MAKE) stl -j 8
 
 
-
 stl/%.stl : scad/%.scad scad/z-butt.scad
 	@mkdir -p stl
 	openscad -o /tmp/$*.stl $< 2> >(tee /tmp/$*.stl.stderr.log >&2)
 	[[ ! $$(grep "WARNING" /tmp/$*.stl.stderr.log) ]]
-ifneq (, $(shell which meshlabserver))
-#	If Meshlab is available, convert STLs to binary.
-	meshlabserver -i /tmp/$*.stl -o $@
-else
+	sed -i 's/OpenSCAD_Model/$*/g' /tmp/$*.stl
 	mv /tmp/$*.stl $@
-endif
 
 
 
